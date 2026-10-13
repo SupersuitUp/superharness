@@ -139,3 +139,12 @@ test("cmpV, claudeVersion and pinnedPath keep the origin's names and behaviour",
   assert.equal(m.claudeVersion("/x", { run: () => { throw new Error("ENOENT"); } }), null);
   assert.equal(m.pinnedPath("/U"), "/U/.freedom/bin/claude-current");
 });
+
+// Ported from Freedom v6.29.1 (freedom-dev#586): "not on this PATH" is not "not installed".
+test("the package-manager paths are named once, and the candidate list ends on them", async () => {
+  const { SYSTEM_CLAUDE_PATHS } = await import("../src/bin-resolver.mjs");
+  assert.deepEqual(SYSTEM_CLAUDE_PATHS, ["/opt/homebrew/bin/claude", "/usr/local/bin/claude"]);
+  assert.deepEqual(CANDIDATES("/U", { exists: () => false, list: () => [] }).slice(-2), SYSTEM_CLAUDE_PATHS);
+  assert.deepEqual(CANDIDATES("/U"), ["/U/.freedom/bin/claude-current", "/U/.local/bin/claude", ...SYSTEM_CLAUDE_PATHS],
+    "the list itself is what it was before the two paths were named");
+});

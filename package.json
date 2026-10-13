@@ -1,6 +1,6 @@
 {
   "name": "@supersuit/harness-harnesser",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A public contract any agent harness can pass, the adapters that pass it today, a conformance check, and a rubric for choosing a harness and a model.",
   "type": "module",
   "bin": {

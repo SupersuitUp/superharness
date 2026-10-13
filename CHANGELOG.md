@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- `SYSTEM_CLAUDE_PATHS` is exported from the `bin-resolver` entry point: the two places a package manager puts `claude` (`/opt/homebrew/bin/claude`, `/usr/local/bin/claude`), named once. `CANDIDATES` ends on it and returns the same list as before. Freedom added this name to its own resolver in v6.29.1, after 0.1.0 was extracted, and four of its callers import it.
+
+Contract version 1.0.0, unchanged.
+
 ## 0.1.0
 
 First release, extracted from the harness resolver inside Freedom (v6.29.0).

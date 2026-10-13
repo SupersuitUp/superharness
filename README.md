@@ -148,7 +148,7 @@ Prints every command with its options. `harness-harnesser --version` prints the 
 
 ```
 $ harness-harnesser --version
-0.1.0 (contract 1.0.0)
+0.1.1 (contract 1.0.0)
 ```
 
 ## The library

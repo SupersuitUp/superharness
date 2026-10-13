@@ -45,12 +45,21 @@ function nvmCandidates(home, exists, list) {
     .filter((p) => exists(p));
 }
 
+/**
+ * Where a package manager puts `claude`: Homebrew on Apple Silicon, then Homebrew on Intel and an
+ * npm global. Named once, because these are the two directories an agent session's PATH most
+ * often LACKS: Claude Code installed by Homebrew alone, under a session whose PATH had no
+ * /opt/homebrew/bin, read as "the claude binary cannot be found" while `claude` ran in the
+ * terminal (Freedom v6.29.1, freedom-dev#586). A resolver that keeps its own order probes these
+ * before it gives up.
+ */
+export const SYSTEM_CLAUDE_PATHS = ["/opt/homebrew/bin/claude", "/usr/local/bin/claude"];
+
 export const CANDIDATES = (home = homedir(), { exists = existsSync, list = readdirSync } = {}) => [
   join(home, ".freedom", "bin", "claude-current"),
   join(home, ".local", "bin", "claude"),
   ...nvmCandidates(home, exists, list),
-  "/opt/homebrew/bin/claude",
-  "/usr/local/bin/claude",
+  ...SYSTEM_CLAUDE_PATHS,
 ].filter((p, i, a) => a.indexOf(p) === i);
 
 /** Compare two dotted versions. Positive when `a` is newer. Unreadable sorts oldest. */
