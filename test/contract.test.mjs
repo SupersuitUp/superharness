@@ -11,7 +11,7 @@ test("every clause has a unique id, a known group, a level and a plain sentence"
     assert.ok(!ids.has(c.id), `duplicate ${c.id}`); ids.add(c.id);
     assert.ok(["places", "actions", "moments", "abilities", "vocabulary"].includes(c.group), c.id);
     assert.ok(["core", "optional"].includes(c.level), c.id);
-    assert.ok(c.says.length > 10 && !c.says.includes("—"), c.id);
+    assert.ok(c.says.length > 10 && !c.says.includes("\u2014"), c.id);
   }
 });
 test("the core is small: places, the binary, identity delivery and session start", () => {
