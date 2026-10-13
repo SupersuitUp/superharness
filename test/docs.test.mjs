@@ -179,3 +179,14 @@ test("the totals RUBRIC.md states are the totals the code computes", async () =>
   const cc = scoreHarness(PROFILES["claude-code"]), cx = scoreHarness(PROFILES.codex);
   assert.ok(read("RUBRIC.md").includes(`| **Total** | **${cc.total} of ${cc.max}** | **${cx.total} of ${cx.max}** |`));
 });
+
+// Freedom vendors this package and scans its payload. Two of its scanners read plain text: one
+// counts literals that look like Freedom's own version, one reads `label =` as a launchd label.
+// Both fired on the first vendored copy (2026-10-13), so the source stays clear of both shapes.
+test("no source file carries a consumer's version number or a `label =` assignment", () => {
+  for (const f of ["src/bin-resolver.mjs", "src/registry.mjs", "src/rubric.mjs", "src/conformance.mjs", "src/define.mjs", "src/contract.mjs", "src/adapters/claude-code.mjs", "src/adapters/codex.mjs", "bin/superharness.mjs"]) {
+    const s = read(f);
+    assert.ok(!/\bv6\.\d+\.\d+/.test(s), `${f} names a Freedom version`);
+    assert.ok(!/\blabel\s*=\s*/i.test(s), `${f} has a label = assignment`);
+  }
+});

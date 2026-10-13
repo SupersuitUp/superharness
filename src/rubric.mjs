@@ -206,10 +206,10 @@ export function recommend({ needs = [] } = {}, profiles = []) {
     return { pick: null, ranked,
       because: `No pick: ${m === 1 ? "the only superharness scored does not have" : `none of ${pool} has`} ${listOf(needs.map(words))} measured today. ${each.join(". ")}.` };
   }
-  const label = top.profile.label;
+  const who = top.profile.label;
   if (!needs.length) {
     return { pick: top.id, ranked,
-      because: `${label}, because ${m === 1 ? "it is the only superharness scored" : `it scores highest of ${pool}`} (${top.total} of ${top.max}) and you named no particular need.` };
+      because: `${who}, because ${m === 1 ? "it is the only superharness scored" : `it scores highest of ${pool}`} (${top.total} of ${top.max}) and you named no particular need.` };
   }
   const dates = needs.map((need) => `${words(need)}: measured ${top.profile.abilities[need].measured} on ${top.profile.abilities[need].version}`).join("; ");
   const have = supers.filter((c) => !c.missing.length).length;
@@ -219,7 +219,7 @@ export function recommend({ needs = [] } = {}, profiles = []) {
     : have === 1
       ? `it is the only one of ${pool} with ${that} measured today`
       : `${have} of ${pool} have ${that} measured today and it scores highest of them (${top.total} of ${top.max})`;
-  return { pick: top.id, ranked, because: `${label}, because you need ${listOf(needs.map(words))} and ${why} (${dates}).` };
+  return { pick: top.id, ranked, because: `${who}, because you need ${listOf(needs.map(words))} and ${why} (${dates}).` };
 }
 
 /**
@@ -232,14 +232,14 @@ export function remoteControlWarning(profile, { profiles = [] } = {}) {
   const a = profile.abilities?.phone;
   const answer = settled(a);
   if (answer === "yes") return null;
-  const label = profile.label || profile.id;
+  const who = profile.label || profile.id;
   const state = answer === "no"
     ? `no${isDate(a.measured) ? `, measured ${a.measured}` : ""}${filled(a.version) ? ` on ${a.version}` : ""}`
     : "not measured yet";
   const have = profiles.filter((p) => settled(p.abilities?.phone) === "yes").map((p) => p.label || p.id);
   return [
-    `Without remote control you cannot reach ${label} from your phone: you will not be able to start a session, check on one that is running, or answer a question it asks.`,
-    `Whether ${label} has remote control: ${state}.${have.length ? ` Remote control is measured today for ${listOf(have)}.` : ""}`,
+    `Without remote control you cannot reach ${who} from your phone: you will not be able to start a session, check on one that is running, or answer a question it asks.`,
+    `Whether ${who} has remote control: ${state}.${have.length ? ` Remote control is measured today for ${listOf(have)}.` : ""}`,
     "You can continue anyway.",
   ].join("\n");
 }

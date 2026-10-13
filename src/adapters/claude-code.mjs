@@ -1,6 +1,6 @@
 // Claude Code's answers to the superharness standard.
 //
-// THE SAFETY PROPERTY. Every key Freedom's own profile had (v6.29.0, freedom-harness.mjs) returns
+// THE SAFETY PROPERTY. Every key Freedom's own profile had (freedom-harness.mjs, October 2026) returns
 // the SAME STRING here for the same environment, home, working directory and session id. Not an
 // equivalent value: the same one, pinned in test/adapters.test.mjs against the literal and the
 // call site it came from. The standard's additions (moments, abilities, deliverIdentity,

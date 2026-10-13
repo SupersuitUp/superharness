@@ -28,7 +28,7 @@ import { execFileSync } from "node:child_process";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-// Moved verbatim from Freedom's freedom-claude-bin.mjs (v6.29.0). The one change: `userHome` was
+// Moved verbatim from Freedom's freedom-claude-bin.mjs (October 2026). The one change: `userHome` was
 // imported from Freedom's workspace module there and is defined here, with the same body, so this
 // package depends on nothing.
 const userHome = () => process.env.FREEDOM_HOME || homedir();
@@ -50,7 +50,7 @@ function nvmCandidates(home, exists, list) {
  * npm global. Named once, because these are the two directories an agent session's PATH most
  * often LACKS: Claude Code installed by Homebrew alone, under a session whose PATH had no
  * /opt/homebrew/bin, read as "the claude binary cannot be found" while `claude` ran in the
- * terminal (Freedom v6.29.1, freedom-dev#586). A resolver that keeps its own order probes these
+ * terminal (freedom-dev#586). A resolver that keeps its own order probes these
  * before it gives up.
  */
 export const SYSTEM_CLAUDE_PATHS = ["/opt/homebrew/bin/claude", "/usr/local/bin/claude"];

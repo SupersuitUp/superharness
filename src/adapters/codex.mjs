@@ -1,7 +1,7 @@
 // Codex's answers to the superharness standard.
 //
 // THE SAFETY PROPERTY is the same as the Claude Code adapter's: every key Freedom's own Codex
-// profile had (v6.29.0, freedom-harness.mjs) returns the same string here.
+// profile had (freedom-harness.mjs, October 2026) returns the same string here.
 //
 // WHAT IS MEASURED AND WHAT IS NOT. The places, the manifest folder, the hook variable and the
 // event list were read out of the shipped 0.156.0 binary on 2026-09-22. Each ability below says

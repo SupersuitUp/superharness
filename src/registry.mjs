@@ -1,6 +1,6 @@
 // Which harness this machine is running inside, and the adapters that can answer for one.
 //
-// The resolver is Freedom's (v6.29.0, freedom-harness.mjs), moved here with its two hard-coded
+// The resolver is Freedom's (freedom-harness.mjs, October 2026), moved here with its two hard-coded
 // names turned into options that default to what they were: the environment variable
 // (FREEDOM_HARNESS) and the machine config file (~/.freedom/config.json). So Freedom gets the
 // answers it got before, and another product can use the same resolver under its own names.
