@@ -1,9 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { CONTRACT_VERSION, CLAUSES, ABILITIES, MOMENTS } from "../src/contract.mjs";
+import { CONTRACT_VERSION, STANDARD_VERSION, CLAUSES, ABILITIES, MOMENTS } from "../src/contract.mjs";
 
-test("the contract has a semver version", () => {
-  assert.match(CONTRACT_VERSION, /^\d+\.\d+\.\d+$/);
+test("the standard has a semver version, and the old export name still answers with it", () => {
+  assert.match(STANDARD_VERSION, /^\d+\.\d+\.\d+$/);
+  assert.equal(CONTRACT_VERSION, STANDARD_VERSION);
 });
 test("every clause has a unique id, a known group, a level and a plain sentence", () => {
   const ids = new Set();
@@ -22,8 +23,9 @@ test("the core is small: places, the binary, identity delivery and session start
   ]);
 });
 test("the abilities and moments the contract names are fixed lists", () => {
-  assert.deepEqual(ABILITIES, ["phone", "backgroundSession", "pluginHooks", "slashCommands",
+  assert.deepEqual(ABILITIES.slice(0, 9), ["phone", "backgroundSession", "pluginHooks", "slashCommands",
     "subagents", "mcp", "liveSessionRegistry", "liveSessions", "askCard"]);
+  assert.deepEqual(ABILITIES.slice(9), ["refuseTool", "permissionGate", "cardWaits"]);
   assert.deepEqual(MOMENTS, ["sessionStart", "sessionEnd", "promptSubmitted", "beforeTool",
     "afterTool", "toolFailed", "permissionRequest", "beforeCompact", "afterCompact",
     "subagentStart", "subagentStop", "stop", "interrupt", "notification"]);

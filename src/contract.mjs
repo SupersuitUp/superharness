@@ -1,8 +1,16 @@
-// The harness contract, as data. CONTRACT.md is the same thing for people; a test keeps them in step.
-export const CONTRACT_VERSION = "1.0.0";
+// The superharness standard's clauses, as data. STANDARD.md is the same thing for people; a test
+// keeps them in step. The clauses are the questions every adapter answers. The bar (src/bar.mjs)
+// is the eleven boxes decided from those answers.
+export const STANDARD_VERSION = "2.0.0";
 
+/** The name this export had before the standard had a bar. Kept so an importer does not break. */
+export const CONTRACT_VERSION = STANDARD_VERSION;
+
+// `phone` is the ability behind remote control. The key keeps its first name because code reads
+// `can.phone`; `defineHarness` mirrors it as `remoteControl`.
 export const ABILITIES = ["phone", "backgroundSession", "pluginHooks", "slashCommands",
-  "subagents", "mcp", "liveSessionRegistry", "liveSessions", "askCard"];
+  "subagents", "mcp", "liveSessionRegistry", "liveSessions", "askCard",
+  "refuseTool", "permissionGate", "cardWaits"];
 
 export const MOMENTS = ["sessionStart", "sessionEnd", "promptSubmitted", "beforeTool",
   "afterTool", "toolFailed", "permissionRequest", "beforeCompact", "afterCompact",
@@ -25,6 +33,7 @@ export const CLAUSES = [
   c("actions", "isTurn", "optional", "function", "True for a record line that is something a person or the model said."),
   c("actions", "startBackground", "optional", "nullable-function", "The command that starts a session nobody is watching: ({ prompt, name, cwd }) => { cmd, args }. Null when the harness cannot."),
   c("actions", "runPrompt", "optional", "nullable-function", "The command that runs one prompt and returns: ({ prompt, cwd }) => { cmd, args }."),
+  c("actions", "questionCard", "optional", "object", "How the harness asks the person a question as a card: { tools: string[], shape: string, read: (toolInput) => { questions: [{ text, options }] }, answeredBy: 'tool-result' | 'next-user-message', answerPolicy?: string }."),
   c("actions", "pluginManifestDir", "optional", "string", "The folder name a plugin's manifest lives in."),
   c("actions", "pluginRootEnv", "optional", "string", "The environment variable a hook reads to find its plugin."),
   ...MOMENTS.map((m) => c("moments", m, m === "sessionStart" ? "core" : "optional", "string",

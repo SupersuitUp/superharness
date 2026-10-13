@@ -1,13 +1,16 @@
-// Codex's answers to the harness contract.
+// Codex's answers to the superharness standard.
 //
 // THE SAFETY PROPERTY is the same as the Claude Code adapter's: every key Freedom's own Codex
 // profile had (v6.29.0, freedom-harness.mjs) returns the same string here.
 //
 // WHAT IS MEASURED AND WHAT IS NOT. The places, the manifest folder, the hook variable and the
 // event list were read out of the shipped 0.156.0 binary on 2026-09-22. Each ability below says
-// what was observed, on which version, on which date. Where nothing was observed on a session
-// that ran, the answer is "unmeasured", which scores nothing and is never shown as a no.
+// what was observed, on which version, on which date, and who observed it. Three answers rest on
+// the operator's firsthand report of 2026-10-13 and say so in the sentence. One, refuseTool, was
+// measured by this package with a single live run. Where nothing was observed, the answer is
+// "unmeasured", which scores nothing and is never shown as a no.
 import { join } from "node:path";
+import { cardReader } from "../card.mjs";
 import { defineHarness } from "../define.mjs";
 
 /** An env var that is set but blank is unset, which is what every call site's `.trim()` means. */
@@ -25,6 +28,10 @@ export const isCodexTurn = (o) =>
       (o.payload.item?.type === "UserMessage" || o.payload.item?.type === "AgentMessage")));
 
 const yes = (measured, version, evidence) => ({ answer: "yes", measured, version, evidence });
+
+// What `codex --version` printed on the maintainer's Mac on 2026-10-13.
+const TODAY = "2026-10-13";
+const VERSION = "codex-cli 0.162.1";
 
 export default (env = {}) => {
   const configDir = (home) => envDir(env, "CODEX_HOME") || join(home, ".codex");
@@ -79,6 +86,17 @@ export default (env = {}) => {
     deliverIdentity: { via: "file", file: (home) => join(configDir(home), "AGENTS.md"), maxChars: 5000 },
     startBackground: ({ prompt, extra = [] }) => ({ cmd: "codex", args: ["exec", "--json", ...extra, prompt] }),
     runPrompt: ({ prompt, extra = [] }) => ({ cmd: "codex", args: ["exec", ...extra, prompt] }),
+    // Source: Freedom's reference file codex-question-cards.md. The async tool takes
+    // { questions: [{ title, options: string[] }] }, and its result of `accepted: true` means the
+    // card was shown, not answered: the answer arrives as the person's next message.
+    questionCard: {
+      tools: ["request_user_input_async", "request_user_input"],
+      shape: "codex-async",
+      read: cardReader((q) => ({ text: q.title, options: q.options })),
+      answeredBy: "next-user-message",
+      // Codex cards have been reported to answer themselves on a timer (see abilities.cardWaits).
+      answerPolicy: "Only the person's next message is an answer. A card that expires, disappears or returns a preselected option is not an answer, and neither is silence or elapsed time.",
+    },
     vocabulary: {
       askOperator: null,
       note: "AskUserQuestion is Claude Code's tool name, and Codex does not expose a tool by that name. Where a skill says AskUserQuestion, use the question card tool this session actually exposes (request_user_input_async, or request_user_input where its own description allows it). When neither is exposed, ask the question plainly in chat and keep the decision pending until the person answers.",
@@ -86,22 +104,28 @@ export default (env = {}) => {
     abilities: {
       backgroundSession: yes("2026-09-24", "0.156.0",
         "`codex exec` ran a turn from the command line in an isolated CODEX_HOME with the Freedom plugin installed, and attached the named skill's SKILL.md to that turn."),
-      phone: { answer: "unmeasured",
-        evidence: "`codex features list` on 0.156.0 (2026-09-22) reported remote_control as removed and off. No other route to a phone was tried on a session that ran, so this is not a measured no." },
+      phone: yes(TODAY, VERSION,
+        "`codex remote-control --help` on this version offers start, stop and pair, and the operator reports reaching Codex sessions from his phone (his firsthand report, 2026-10-13; this package did not start remote control). In September, `codex features list` on 0.156.0 showed `remote_control removed`, which was misread as the feature being gone. The same line still prints on this version, beside the working command."),
       pluginHooks: { answer: "unmeasured",
         evidence: "`codex features list` on 0.156.0 (2026-09-22) reported plugin_hooks as removed and off, while the same binary carried a trust step for plugin hooks. Unresolved." },
       slashCommands: { answer: "no", measured: "2026-09-22", version: "0.156.0",
         evidence: "Freedom's profile, read from the 0.156.0 binary, records custom prompts as deprecated in favour of skills. Skills are attached as $freedom:<skill> instead." },
-      subagents: yes("2026-09-22", "0.156.0",
-        "The 0.156.0 binary's own hook event list carries SubagentStart and SubagentStop. Read from the binary; not yet observed on a session that ran."),
+      subagents: yes(TODAY, VERSION,
+        "The operator reports that Codex hands work to helper agents (his firsthand report, 2026-10-13). The binary lists SubagentStart and SubagentStop among its hook events, and `codex features list` on this version shows multi_agent as stable and on. This package did not start a helper itself."),
       mcp: yes("2026-09-23", "0.156.0",
         "Codex 0.156 launched Freedom's two MCP servers from the plugin manifest and resolved a cwd of \".\" against the plugin folder. The first launch line gave zero tools because the plugin root placeholder is passed through as literal text."),
       liveSessionRegistry: { answer: "no", measured: "2026-09-22", version: "0.156.0",
         evidence: "Codex's sessions/ folder holds chat history (dated rollout files), and no per-process registry of running sessions is known." },
       liveSessions: yes("2026-09-23", "0.156.0",
         "A running Codex session holds its rollout file open, so running sessions were listed by reading open files with lsof."),
-      askCard: { answer: "unmeasured",
-        evidence: "Freedom's Codex guidance routes questions to request_user_input_async when a session exposes it, but no dated, versioned observation of a card being shown and answered is on record." },
+      askCard: yes(TODAY, VERSION,
+        "The operator reports that Codex shows native question cards (his firsthand report, 2026-10-13). Freedom's own reference file, codex-question-cards.md, routes questions to request_user_input_async, where a result of accepted: true means the card was shown, not answered. This package did not show a card itself."),
+      cardWaits: { answer: "no", measured: TODAY, version: VERSION,
+        evidence: "openai/codex issue 28969, first reported on codex-cli 0.141.0 and still open on 2026-10-13, reports that Codex accepts the recommended answer to a question by itself within 60 seconds, and the operator reports the same from his own use: Codex skips question cards and puts a timer on them. Freedom's reference file, codex-question-cards.md, also notes an expiry countdown. This was not re-timed on the installed version by this package." },
+      refuseTool: yes(TODAY, VERSION,
+        "Measured with one live run. In an isolated CODEX_HOME whose hooks.json wired PreToolUse to a script, `codex exec --json -s workspace-write --dangerously-bypass-hook-trust` was asked to run `echo SUPERHARNESS_PROBE > probe.txt`. The hook received one PreToolUse payload (tool_name Bash, that command) and replied with permissionDecision deny. Codex logged \"Command blocked by PreToolUse hook: probe\", and probe.txt was not created. Hook trust was bypassed by flag for the run, so this shows that a deny is honoured, not how a hook comes to be trusted."),
+      permissionGate: yes("2026-09-23", "0.156.0",
+        "A `codex exec` run with approval policy \"never\" refused an MCP tool call with \"MCP tool call requires approval, but approval policy is never\", and the same call went through once the tool's approval mode was set to approve (Freedom's test notes, 2026-09-23). Read on 2026-10-13 from codex-cli 0.162.1: `codex --help` lists `-s, --sandbox` (read-only, workspace-write, danger-full-access) and `-a, --ask-for-approval` (on-request, never), and `codex exec --help` lists `-s, --sandbox`."),
     },
   });
 };

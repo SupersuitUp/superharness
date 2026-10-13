@@ -7,14 +7,19 @@ const canProxy = (abilities) =>
 /**
  * Turn an adapter's answers into a profile.
  *
- * Every ability the contract names gets an answer (unanswered is "unmeasured"), every moment gets
+ * Every ability the standard names gets an answer (unanswered is "unmeasured"), every moment gets
  * the harness's own event name or null, `events` is the list of names the harness really has, and
- * `can.<ability>` is true only for a "yes". Abilities an adapter declares beyond the contract's
- * list are kept, so `can` answers for them too.
+ * `can.<ability>` is true only for a "yes". Abilities an adapter declares beyond the standard's
+ * list are kept, so `can` answers for them too. `remoteControl` mirrors `phone`.
  */
 export function defineHarness(spec) {
-  const abilities = { ...(spec.abilities || {}),
-    ...Object.fromEntries(ABILITIES.map((a) => [a, spec.abilities?.[a] || { answer: "unmeasured" }])) };
+  const declared = spec.abilities && typeof spec.abilities === "object" ? spec.abilities : {};
+  const abilities = { ...declared,
+    ...Object.fromEntries(ABILITIES.map((a) => [a, declared[a] || { answer: "unmeasured" }])) };
+  // Remote control is the ability the key `phone` has always held. Both names answer, with the
+  // same object, whichever one the adapter declared.
+  if (!declared.phone && declared.remoteControl) abilities.phone = declared.remoteControl;
+  abilities.remoteControl = abilities.phone;
   const moments = Object.fromEntries(MOMENTS.map((m) => [m, spec.moments?.[m] ?? null]));
   const events = spec.events || MOMENTS.map((m) => moments[m]).filter(Boolean);
   return { ...spec, abilities, moments, events, can: canProxy(abilities) };

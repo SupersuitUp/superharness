@@ -170,12 +170,12 @@ test("codex: the two events with no twin are absent, and the two the harness doe
   assert.ok(p.events.includes("SessionStart"));
 });
 
-test("codex: the phone line is declared unavailable until the probe has fired", () => {
-  // `codex features list` on 2026-09-22 reports remote_control as removed and off. Claiming the
-  // capability would make a skill run a command that is not there and report something
-  // confusing; declaring it false makes the same skill say the true sentence.
+test("codex: remote control is a yes since 2026-10-13, and slash commands are still a measured no", () => {
+  // Until 0.2.0 this was false: `codex features list` on 2026-09-22 printed `remote_control
+  // removed`, which was misread as the feature being gone. `codex remote-control` is a working
+  // command on 0.162.1 and the operator reports using it from his phone.
   const { can } = codex({});
-  assert.equal(can.phone, false);
+  assert.equal(can.phone, true);
   assert.equal(can.slashCommands, false); // custom prompts are deprecated in favour of skills
 });
 
@@ -245,7 +245,8 @@ test("the origin's capability table, value for value", () => {
   const want = {
     "claude-code": { backgroundSession: true, phone: true, pluginHooks: true, slashCommands: true,
       subagents: true, mcp: true, liveSessionRegistry: true, liveSessions: true },
-    codex: { backgroundSession: true, phone: false, pluginHooks: false, slashCommands: false,
+    // phone was false at the origin; it is the one value here that 0.2.0 changed, on new evidence.
+    codex: { backgroundSession: true, phone: true, pluginHooks: false, slashCommands: false,
       subagents: true, mcp: true, liveSessionRegistry: false, liveSessions: true },
   };
   for (const p of [claudeCode({}), codex({})])
@@ -296,9 +297,58 @@ test("every ability is answered by both adapters, and a yes carries date, versio
     }
   }
 });
-test("codex: the phone line is unmeasured, never a no we did not prove", () => {
-  assert.equal(codex({}).abilities.phone.answer, "unmeasured");
-  assert.equal(codex({}).can.phone, false);
+test("codex: plugin hooks are unmeasured, never a no we did not prove", () => {
+  assert.equal(codex({}).abilities.pluginHooks.answer, "unmeasured");
+  assert.equal(codex({}).can.pluginHooks, false);
+});
+test("an answer that rests on the operator's report says so in its evidence sentence", () => {
+  const a = codex({}).abilities;
+  for (const k of ["phone", "askCard", "subagents"]) {
+    assert.match(a[k].evidence, /operator reports/, k);
+    assert.match(a[k].evidence, /firsthand report, 2026-10-13/, k);
+    assert.equal(a[k].measured, "2026-10-13", k);
+    assert.equal(a[k].version, "codex-cli 0.162.1", k);
+  }
+  assert.match(a.phone.evidence, /start, stop and pair/);
+  assert.match(a.phone.evidence, /remote_control removed/);
+});
+test("the two safety abilities carry what was run or read, on which version, for both harnesses", () => {
+  const cx = codex({}).abilities, cc = claudeCode({}).abilities;
+  assert.match(cx.refuseTool.evidence, /SUPERHARNESS_PROBE/);
+  assert.match(cx.refuseTool.evidence, /probe\.txt was not created/);
+  assert.equal(cx.refuseTool.measured, "2026-10-13");
+  assert.equal(cx.permissionGate.measured, "2026-09-23");
+  assert.equal(cx.permissionGate.version, "0.156.0");
+  assert.match(cx.permissionGate.evidence, /approval policy is never/);
+  assert.match(cc.refuseTool.evidence, /PreToolUse/);
+  assert.match(cc.permissionGate.evidence, /--permission-mode/);
+  assert.match(cc.permissionGate.evidence, /--allowedTools/);
+});
+test("cardWaits: Codex is a measured no that cites the open issue and the operator, and says it was not re-timed", () => {
+  const a = codex({}).abilities.cardWaits;
+  assert.equal(a.answer, "no");
+  assert.equal(a.measured, "2026-10-13");
+  assert.equal(a.version, "codex-cli 0.162.1");
+  assert.match(a.evidence, /openai\/codex issue 28969/);
+  assert.match(a.evidence, /0\.141\.0/);
+  assert.match(a.evidence, /operator reports/);
+  assert.match(a.evidence, /not re-timed/);
+});
+test("cardWaits: Claude Code's answer says it was read from the program's settings text, not timed", () => {
+  const a = claudeCode({}).abilities.cardWaits;
+  assert.equal(a.answer, "yes");
+  assert.equal(a.measured, "2026-10-13");
+  assert.match(a.evidence, /askUserQuestionTimeout/);
+  assert.match(a.evidence, /never/);
+  assert.match(a.evidence, /not timed/);
+});
+test("no evidence sentence states a motive or carries an em dash", () => {
+  for (const p of [claudeCode({}), codex({})])
+    for (const [k, a] of Object.entries(p.abilities)) {
+      if (!a.evidence) continue;
+      assert.ok(!a.evidence.includes("\u2014"), `${p.id}.${k}`);
+      assert.ok(!/\b(wants?|chose|decided|refuses to|intends?|strategy)\b/i.test(a.evidence), `${p.id}.${k}`);
+    }
 });
 test("every moment is answered with the harness's own event name or null", () => {
   for (const p of [claudeCode({}), codex({})]) {

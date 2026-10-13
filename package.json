@@ -1,10 +1,10 @@
 {
-  "name": "@supersuit/harness-harnesser",
-  "version": "0.1.1",
-  "description": "A public contract any agent harness can pass, the adapters that pass it today, a conformance check, and a rubric for choosing a harness and a model.",
+  "name": "@supersuit/superharness",
+  "version": "0.2.0",
+  "description": "The superharness standard: the eleven boxes a harness must check, the adapters for the two that check them today, the check, and a rubric for comparing superharnesses.",
   "type": "module",
   "bin": {
-    "harness-harnesser": "bin/harness-harnesser.mjs"
+    "superharness": "bin/superharness.mjs"
   },
   "exports": {
     ".": "./src/index.mjs",
@@ -15,7 +15,7 @@
     "bin/",
     "src/",
     "README.md",
-    "CONTRACT.md",
+    "STANDARD.md",
     "RUBRIC.md",
     "CHANGELOG.md",
     "LICENSE"
@@ -29,7 +29,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SupersuitUp/harness-harnesser.git"
+    "url": "git+https://github.com/SupersuitUp/superharness.git"
   },
   "dependencies": {}
 }

@@ -4,6 +4,7 @@ import claudeCode from "../src/adapters/claude-code.mjs";
 import codex from "../src/adapters/codex.mjs";
 import { defineHarness } from "../src/define.mjs";
 import { CLAUSES } from "../src/contract.mjs";
+import { BAR } from "../src/bar.mjs";
 import { checkStatic, checkLive, summarize } from "../src/conformance.mjs";
 
 const minimal = (over = {}) => defineHarness({ id: "x", label: "X", configDir: (h) => h, skillsDir: (h) => h,
@@ -46,14 +47,21 @@ test("live: an installed harness reports its version; a missing one is skipped, 
 // The rules, one at a time
 // ---------------------------------------------------------------------------
 
-test("there is one result per clause, in the contract's order, plus the purity rule", () => {
+test("there is one result per clause, in the standard's order, then the purity rule, then one per box", () => {
   const r = checkStatic(minimal());
-  assert.deepEqual(r.map((x) => x.id), [...CLAUSES.map((c) => c.id), "purity"]);
+  assert.deepEqual(r.map((x) => x.id), [...CLAUSES.map((c) => c.id), "purity", ...BAR.map((b) => `bar.${b.id}`)]);
   for (const x of r) {
     assert.equal(typeof x.ok, "boolean", x.id);
     assert.ok(x.why.length > 0, x.id);
-    assert.ok(["core", "optional"].includes(x.level), x.id);
+    assert.ok(["core", "optional", "bar"].includes(x.level), x.id);
   }
+});
+test("the question card clause is optional, and one that is present and malformed fails", () => {
+  const card = { tools: ["ask"], shape: "t", read: () => ({ questions: [] }), answeredBy: "tool-result" };
+  assert.equal(summarize(checkStatic(minimal({ questionCard: card }))).pass, true);
+  assert.equal(summarize(checkStatic(minimal())).pass, true);
+  for (const bad of [{ ...card, tools: [] }, { ...card, answeredBy: "later" }, { ...card, read: "x" }, "AskUserQuestion"])
+    assert.deepEqual(summarize(checkStatic(minimal({ questionCard: bad }))).failed, ["actions.questionCard"]);
 });
 test("a core place must return a non-empty string: null, empty and a throw all fail", () => {
   for (const configDir of [() => null, () => "", () => { throw new Error("boom"); }, "/not/a/function"]) {
@@ -146,7 +154,7 @@ test("live: the session-level probes are declared and never faked", async () => 
   assert.deepEqual(probes.map((x) => x.id), ["live.session.hookFires", "live.session.identityArrives", "live.session.recordReadable"]);
   for (const p of probes) {
     assert.equal(p.ok, null);
-    assert.equal(p.why, "needs an interactive probe; see CONTRACT.md, Live check");
+    assert.equal(p.why, "needs an interactive probe; see STANDARD.md, Live check");
   }
   assert.equal(summarize(r).pass, true, "a row nobody could measure is not a failure");
 });

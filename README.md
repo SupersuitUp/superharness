@@ -1,154 +1,202 @@
-# @supersuit/harness-harnesser
+# @supersuit/superharness
 
-A public contract any agent harness can pass, written as data and as a page you can read. It ships the two adapters that pass it today, Claude Code and Codex, and a check that prints pass or fail for every line of the contract. It also ships a rubric that scores what each harness has been measured to do, so a recommendation is the scorecard read aloud.
+A superharness is a harness you can hand your whole computer and your whole context to, and still be the one in command. A harness earns the name by checking eleven boxes: six that say it can do the work, and five that say you stay in command while it does. This package is that standard, the check for it, and the adapters for the two harnesses that check all eleven today, Claude Code and Codex.
 
 Zero dependencies. Node 20 or later.
 
-- [CONTRACT.md](./CONTRACT.md): the contract, clause by clause, and how to write an adapter.
-- [RUBRIC.md](./RUBRIC.md): the scorecards, the weights, and the protocol for every model task.
+- [STANDARD.md](./STANDARD.md): the eleven boxes, how each is decided, and how to write an adapter.
+- [RUBRIC.md](./RUBRIC.md): how superharnesses are compared, and the protocol for every model task.
+
+## The bar
+
+```
+$ superharness bar codex
+PASS  computer       capability  It works on your computer: it reads and writes your files and runs programs in folders you choose.
+PASS  instructions   capability  It loads your instructions whole, every session.
+PASS  skills         capability  It reads skills from a folder, in the open skill format.
+PASS  tools          capability  It can be given new tools through the open connector standard.
+PASS  unattended     capability  It can work while you are not watching, from a single command.
+PASS  helpers        capability  It can hand work to helper agents.
+PASS  refuses        safety      It stops before it acts: there is a moment before every tool runs where a rule can say no.
+PASS  permission     safety      It asks permission, and can be restricted to a list of what it may do without asking.
+PASS  record         safety      It keeps a full record of every session on your own disk, in a form you can read and take with you.
+PASS  remoteControl  safety      You can reach it from your phone: start a session, check on one, answer it.
+PASS  questionCard   safety      It can ask you a question as a card with choices.
+```
+
+Every box is decided from what the harness's adapter declares, and a box that rests on an ability needs the date it was measured, the version it was measured on, and one sentence saying what was observed.
 
 ## Install
 
 ```sh
-npm install @supersuit/harness-harnesser
+npm install @supersuit/superharness
 ```
 
 Or run it without installing:
 
 ```sh
-npx @supersuit/harness-harnesser list
+npx @supersuit/superharness list
 ```
 
 ## The commands
 
-Every command is text in, text out. Exit codes: 0 for ok or yes, 1 for no or failed, 2 for a usage error. Add `--json` to `list`, `which`, `check` and `rubric` for output a program can read.
+Every command is text in, text out. Exit codes: 0 for ok or yes, 1 for no or failed, 2 for a usage error. Add `--json` to `list`, `which`, `check`, `bar` and `rubric` for output a program can read.
 
-### `harness-harnesser list`
+### `superharness list`
 
 The harnesses this package ships an adapter for.
 
 ```
-$ harness-harnesser list
+$ superharness list
 claude-code	Claude Code
 codex	Codex
 ```
 
-### `harness-harnesser which`
+### `superharness which`
 
 The harness this machine is set to. The `FREEDOM_HARNESS` environment variable wins, then `harness` in `~/.freedom/config.json`, then `claude-code`. An unknown name falls back to `claude-code` and never fails.
 
 ```
-$ harness-harnesser which
+$ superharness which
 claude-code
-$ FREEDOM_HARNESS=codex harness-harnesser which
+$ FREEDOM_HARNESS=codex superharness which
 codex
 ```
 
-### `harness-harnesser path`
+### `superharness path`
 
 One path and nothing else, so a shell script can use it directly. It exits 1 when the harness has no such place.
 
 ```
-$ harness-harnesser path skillsDir --harness codex --home /Users/you
+$ superharness path skillsDir --harness codex --home /Users/you
 /Users/you/.codex/skills
-$ harness-harnesser path transcriptPath --harness claude-code --home /Users/you --cwd /a/b --session s1
+$ superharness path transcriptPath --harness claude-code --home /Users/you --cwd /a/b --session s1
 /Users/you/.claude/projects/-a-b/s1.jsonl
-$ harness-harnesser path sessionsDir --harness codex; echo "exit $?"
+$ superharness path sessionsDir --harness codex; echo "exit $?"
 exit 1
 ```
 
 Places: `configDir`, `skillsDir`, `transcriptsRoot`, `settingsFile`, `pluginCacheDir`, `marketplacesDir`, `sessionsDir`, `transcriptPath`, `worktreesDir`. Without `--harness` it uses the one `which` reports. Without `--home` it uses your home folder. `worktreesDir` takes `--root <project folder>`.
 
-### `harness-harnesser can`
+### `superharness can`
 
-Prints `yes`, `no` or `unmeasured`. It exits 0 only for `yes`.
+Prints `yes`, `no` or `unmeasured`. It exits 0 only for `yes`. Remote control answers under two names, `remoteControl` and the older `phone`.
 
 ```
-$ harness-harnesser can phone --harness claude-code; echo "exit $?"
+$ superharness can remoteControl --harness codex; echo "exit $?"
 yes
 exit 0
-$ harness-harnesser can phone --harness codex; echo "exit $?"
+$ superharness can pluginHooks --harness codex; echo "exit $?"
 unmeasured
 exit 1
 ```
 
-### `harness-harnesser check`
+### `superharness check`
 
-One line per clause of the contract, then a summary line. The target is a shipped id or the path to an adapter file.
+One line per clause of the standard and a line counting them, then one line per box, then the answer. The target is a shipped id or the path to an adapter file. It exits 0 only for a superharness.
 
 ```
-$ harness-harnesser check codex | tail -5
-PASS  abilities.askCard              optional  unmeasured
-PASS  vocabulary.askOperator         optional  null: the harness has none
-PASS  vocabulary.note                optional  AskUserQuestion is Claude Code's tool name, and Codex does not expose a tool by that name. Where a skill says AskUserQuestion, use the question card tool this session actually exposes (request_user_input_async, or request_user_input where its own description allows it). When neither is exposed, ask the question plainly in chat and keep the decision pending until the person answers.
+$ superharness check codex | tail -14
 PASS  purity                         core      no place getter reads process.env
-PASS codex: contract 1.0.0, core 7 of 7, optional 35 of 35
+clauses: core 7 of 7, optional 39 of 39
+PASS  computer       capability  It works on your computer: it reads and writes your files and runs programs in folders you choose.
+PASS  instructions   capability  It loads your instructions whole, every session.
+PASS  skills         capability  It reads skills from a folder, in the open skill format.
+PASS  tools          capability  It can be given new tools through the open connector standard.
+PASS  unattended     capability  It can work while you are not watching, from a single command.
+PASS  helpers        capability  It can hand work to helper agents.
+PASS  refuses        safety      It stops before it acts: there is a moment before every tool runs where a rule can say no.
+PASS  permission     safety      It asks permission, and can be restricted to a list of what it may do without asking.
+PASS  record         safety      It keeps a full record of every session on your own disk, in a form you can read and take with you.
+PASS  remoteControl  safety      You can reach it from your phone: start a session, check on one, answer it.
+PASS  questionCard   safety      It can ask you a question as a card with choices.
+SUPERHARNESS codex: 11 of 11 (standard 2.0.0)
 ```
 
-An adapter that leaves out a core clause fails, and the summary names the clause:
+A harness that misses a box is told which, and why:
 
 ```
-$ harness-harnesser check ./broken.mjs | tail -1; echo "exit $?"
-FAIL broken: contract 1.0.0, core 6 of 7, optional 35 of 35, failed: places.skillsDir
+$ superharness check ./small.mjs | tail -3; echo "exit $?"
+FAIL  remoteControl  safety      You can reach it from your phone: start a session, check on one, answer it. Missing: remote control is not measured.
+FAIL  questionCard   safety      It can ask you a question as a card with choices. Missing: askCard is not measured.
+NOT A SUPERHARNESS small: 3 of 11, missing: tools, unattended, helpers, refuses, permission, record, remoteControl, questionCard
 exit 1
 ```
 
-`--live` adds the rows that need the harness installed on this machine. It runs the harness's program with `--version` and nothing else. A harness that is not installed is skipped, never failed. The rows that need a real session are printed as `SKIP`; see [CONTRACT.md, Live check](./CONTRACT.md#live-check).
+`--live` adds the rows that need the harness installed on this machine. It runs the harness's program with `--version` and nothing else. A harness that is not installed is skipped, never failed. The rows that need a real session are printed as `SKIP`; see [STANDARD.md, Live check](./STANDARD.md#live-check).
 
 ```
-$ harness-harnesser check codex --live | grep live
+$ superharness check codex --live | grep live
+PASS  abilities.liveSessionRegistry  optional  no
+PASS  abilities.liveSessions         optional  yes, measured 2026-09-23 on 0.156.0
 PASS  live.bin                       optional  codex --version printed codex-cli 0.162.1
 PASS  live.configDir                 optional  /Users/you/.codex exists
-SKIP  live.session.hookFires         optional  needs an interactive probe; see CONTRACT.md, Live check
-SKIP  live.session.identityArrives   optional  needs an interactive probe; see CONTRACT.md, Live check
-SKIP  live.session.recordReadable    optional  needs an interactive probe; see CONTRACT.md, Live check
+SKIP  live.session.hookFires         optional  needs an interactive probe; see STANDARD.md, Live check
+SKIP  live.session.identityArrives   optional  needs an interactive probe; see STANDARD.md, Live check
+SKIP  live.session.recordReadable    optional  needs an interactive probe; see STANDARD.md, Live check
 ```
 
-### `harness-harnesser rubric`
+### `superharness bar`
 
-The scorecard for each harness, with the date, the version and the evidence behind every row. With `--needs`, the last line is the recommendation. It exits 1 when you named a need and no harness meets it.
+Only the eleven boxes, as shown at the top of this page. It exits 0 only when all eleven are checked.
 
 ```
-$ harness-harnesser rubric --needs phone
-Claude Code  13.6 of 14
-    3 of 3  I can reach it from my phone: yes, measured 2026-10-13 on 2.1.296 (Claude Code)
+$ superharness bar claude-code | tail -2; echo "exit $?"
+PASS  remoteControl  safety      You can reach it from your phone: start a session, check on one, answer it.
+PASS  questionCard   safety      It can ask you a question as a card with choices.
+exit 0
+```
+
+### `superharness rubric`
+
+Whether each harness is a superharness, then the scorecard for each, with the date, the version and the evidence behind every row. With `--needs`, the last line is the recommendation. It exits 1 when you named a need and no superharness meets it.
+
+```
+$ superharness rubric --needs liveSessionRegistry
+Claude Code: superharness, 11 of 11 (standard 2.0.0)
+Codex: superharness, 11 of 11 (standard 2.0.0)
+
+Claude Code  15.6 of 16
+    3 of 3  I can reach it by remote control from my phone: yes, measured 2026-10-13 on 2.1.296 (Claude Code)
             `claude --help` on this version lists `--remote-control`, and the com.getfreedom.remotecontrol LaunchAgent that runs `claude remote-control` was loaded on the measuring Mac.
     2 of 2  It can work while I am not watching: yes, measured 2026-10-13 on 2.1.296 (Claude Code)
   ...
 
-Codex  8.7 of 14
-    0 of 3  I can reach it from my phone: not measured
-            `codex features list` on 0.156.0 (2026-09-22) reported remote_control as removed and off. No other route to a phone was tried on a session that ran, so this is not a measured no.
-    2 of 2  It can work while I am not watching: yes, measured 2026-09-24 on 0.156.0
+Codex  13.7 of 16
+    3 of 3  I can reach it by remote control from my phone: yes, measured 2026-10-13 on codex-cli 0.162.1
   ...
-  not measured: phone, askCard
+  1.7 of 2  My rules run at every moment, not only some: 12 of 14
+            The adapter names 12 of the standard's 14 moments.
+  ...
+    0 of 2  A question waits for me as long as it takes: no, measured 2026-10-13 on codex-cli 0.162.1
+  ...
 
 No model results ship with this package. A model scorecard is filled by a recorded run; see RUBRIC.md.
 
-Claude Code, because you need a line to your phone and it is the only one of the 2 scored with that measured today (a line to your phone: measured 2026-10-13 on 2.1.296 (Claude Code)).
+Claude Code, because you need a registry of running sessions and it is the only one of the 2 superharnesses scored with that measured today (a registry of running sessions: measured 2026-10-13 on 2.1.296 (Claude Code)).
 ```
 
-The `...` lines stand for the remaining rows, which the real command prints in full.
+The `...` lines stand for the remaining rows and evidence sentences, which the real command prints in full.
 
-### `harness-harnesser warn`
+### `superharness warn`
 
-The text to show someone before they set up inside a harness with no measured line to their phone. It prints nothing for a harness that has one.
+The text to show someone before they set up inside a harness with no remote control measured. It prints nothing for a harness that has it, which today is both shipped harnesses.
 
 ```
-$ harness-harnesser warn codex
-From your phone you will not be able to start a session in Codex, check on one that is running, or answer a question it asks.
-Whether Codex has a line to your phone: not measured yet. A measured line today: Claude Code.
+$ superharness warn ./small.mjs
+Without remote control you cannot reach Small from your phone: you will not be able to start a session, check on one that is running, or answer a question it asks.
+Whether Small has remote control: not measured yet. Remote control is measured today for Claude Code and Codex.
 You can continue anyway.
-$ harness-harnesser warn claude-code
+$ superharness warn codex
 ```
 
-### `harness-harnesser --help`
+### `superharness --help`
 
-Prints every command with its options. `harness-harnesser --version` prints the package version and the contract version:
+Prints every command with its options. `superharness --version` prints the package version and the standard version:
 
 ```
-$ harness-harnesser --version
-0.1.1 (contract 1.0.0)
+$ superharness --version
+0.2.0 (standard 2.0.0)
 ```
 
 ## The library
@@ -156,78 +204,98 @@ $ harness-harnesser --version
 ```js
 import {
   harness, harnessId, loadAdapter, register,
+  BAR, checkBar, isSuperharness, cardFrom,
   checkStatic, checkLive, summarize,
-  scoreHarness, recommend, phoneLineWarning,
-  CONTRACT_VERSION, CLAUSES, ABILITIES, MOMENTS,
-} from "@supersuit/harness-harnesser";
+  scoreHarness, recommend, remoteControlWarning,
+  STANDARD_VERSION, CLAUSES, ABILITIES, MOMENTS,
+} from "@supersuit/superharness";
 
 // The profile for this machine. Every path on it is a function of the home you pass.
 const h = harness({ env: process.env, home: "/Users/you" });
 h.id;                       // "claude-code"
 h.skillsDir("/Users/you");  // "/Users/you/.claude/skills"
 h.moments.toolFailed;       // "PostToolUseFailure", or null on a harness that has no such event
-h.can.phone;                // true only for a measured yes
-h.abilities.phone;          // { answer, measured, version, evidence }
+h.can.remoteControl;        // true only for a measured yes. h.can.phone is the same answer
+h.abilities.remoteControl;  // { answer, measured, version, evidence }
 
-// Does a profile pass the contract?
-summarize(checkStatic(h));  // { pass: true, core: { ok: 7, total: 7 }, optional: { ... }, failed: [] }
+// Is it a superharness?
+isSuperharness(h);          // true
+checkBar(h);                // 11 rows: { id, half, ok, why }
+summarize(checkStatic(h));
+// { pass: true, core: { ok: 7, total: 7 }, optional: { ok: 39, total: 39 }, failed: [],
+//   superharness: true, bar: { ok: 11, total: 11, missing: [] } }
 
-// Which harness for someone who needs the phone line?
+// Is this tool call a question card, and what does it ask?
+cardFrom({ tool_name: "AskUserQuestion", tool_input }, h);  // { questions: [{ text, options }] }, or null
+h.questionCard.answeredBy;                                  // "tool-result"
+h.can.cardWaits;                                            // does a card wait for you, or answer itself?
+
+// Which superharness for someone who needs a registry of running sessions?
 const codex = (await loadAdapter("codex"))({});
-recommend({ needs: ["phone"] }, [h, codex]).because;
+recommend({ needs: ["liveSessionRegistry"] }, [h, codex]).because;
 ```
 
 | Export | What it is |
 | --- | --- |
-| `CONTRACT_VERSION`, `CLAUSES`, `ABILITIES`, `MOMENTS` | The contract as data |
+| `DEFINITION`, `BAR` | The one sentence, and the eleven boxes: `{ id, half, says, needs }` |
+| `checkBar(profile)`, `isSuperharness(profile)` | One row per box, `{ id, half, ok, why }`, and whether all eleven are checked |
+| `cardFrom({ tool_name, tool_input }, profile)` | The question card a tool call shows, `{ questions }`, or `null` when the tool is not one of the profile's card tools |
+| `cardReader(pick)`, `questionCardProblem(clause)` | A `read` that cannot throw, built from a function over one question; and what is wrong with a question card clause, or `null` |
+| `STANDARD_VERSION`, `CLAUSES`, `ABILITIES`, `MOMENTS` | The clauses the boxes are decided from. `CONTRACT_VERSION` is still exported and equals `STANDARD_VERSION` |
 | `defineHarness(spec)` | Turns an adapter's answers into a full profile: every ability answered, every moment named or null, `events`, and `can` |
 | `BUILTIN`, `HARNESSES`, `PROFILES`, `DEFAULT_HARNESS` | The shipped adapters, their ids, a built profile of each, and `"claude-code"` |
 | `loadAdapter(pathOrId)` | An adapter factory from a shipped id or a file. Async |
 | `register(id, factory)` | Makes an outside adapter resolvable by id |
 | `harnessId(opts)`, `harness(opts)`, `isSwapped(opts)`, `installed(profile, home)` | The resolver. `opts` is `{ env, home, config, envVar, configFile }`; `envVar` defaults to `FREEDOM_HARNESS` and `configFile` to `(home) => home/.freedom/config.json`, so another product can use its own names |
-| `checkStatic(profile)`, `checkLive(profile, opts)`, `summarize(results)` | The conformance check |
-| `HARNESS_ROWS`, `scoreHarness(profile)` | The harness scorecard |
+| `checkStatic(profile)`, `checkLive(profile, opts)`, `summarize(results)` | The check. `summarize` returns `pass` for the clauses and `superharness` and `bar` for the boxes |
+| `HARNESS_ROWS`, `scoreHarness(profile)` | The harness scorecard, which starts with `superharness` and `bar` |
 | `MODEL_ROWS`, `MODEL_RESULTS`, `scoreModel(results)` | The model scorecard. `MODEL_RESULTS` is empty: a model scorecard is filled only by a recorded run |
-| `recommend({ needs }, profiles)` | `{ pick, because, ranked }` |
-| `phoneLineWarning(profile, { profiles })` | Three lines, or `null` for a measured line |
+| `recommend({ needs }, profiles)` | `{ pick, because, ranked }`. Only a superharness is ever picked |
+| `remoteControlWarning(profile, { profiles })` | Three lines, or `null` when remote control is measured. `phoneLineWarning` is still exported and is the same function |
 | `slugCwd(cwd)`, `isCodexTurn(line)` | Two helpers the adapters use, exported by name |
 
 The program finder the Claude Code adapter uses is a separate entry point:
 
 ```js
-import { claudeBin, claudeInstalls } from "@supersuit/harness-harnesser/bin-resolver";
+import { claudeBin, claudeInstalls } from "@supersuit/superharness/bin-resolver";
 ```
 
 ## Add your harness
 
-An adapter is one file. This one answers the six core clauses and passes:
+An adapter is one file, and it can live anywhere. Start with what every adapter must say, and run the check to see which boxes are left:
 
 ```js
-// toy.mjs
+// small.mjs
 export default (env) => ({
-  id: "toy",
-  label: "Toy",
-  configDir: (home) => home + "/.toy",
-  skillsDir: (home) => home + "/.toy/skills",
-  transcriptsRoot: (home) => home + "/.toy/log",
-  bin: () => "toy",
+  id: "small",
+  label: "Small",
+  configDir: (home) => home + "/.small",
+  skillsDir: (home) => home + "/.small/skills",
+  transcriptsRoot: (home) => home + "/.small/log",
+  bin: () => "small",
   deliverIdentity: { via: "hook-context" },
   moments: { sessionStart: "Start" },
 });
 ```
 
 ```
-$ harness-harnesser check ./toy.mjs | tail -1
-PASS toy: contract 1.0.0, core 7 of 7, optional 35 of 35
+$ superharness check ./small.mjs | tail -1
+NOT A SUPERHARNESS small: 3 of 11, missing: tools, unattended, helpers, refuses, permission, record, remoteControl, questionCard
 ```
 
-Then add what your harness really has, one clause at a time. An ability is a `yes` only with the date you measured it, the version you measured it on, and one sentence saying what you observed. [CONTRACT.md](./CONTRACT.md) has every clause and the full rules.
+Then check the boxes your harness really checks, one at a time. A box that rests on an ability is a `yes` only with the date you measured it, the version you measured it on, and one sentence saying what you observed. [STANDARD.md](./STANDARD.md) has a complete adapter that checks all eleven, the rule for every box, and a short probe you can run for the hardest one to show, a rule that says no to a tool.
 
-You do not need anyone's permission to try this. The file can live anywhere, and `loadAdapter("./toy.mjs")` reads it.
+A harness that checks ten boxes is reported as ten of eleven, with the missing one named. Nobody's permission is needed to try this, and `loadAdapter("./small.mjs")` reads the file from code.
+
+## What was measured
+
+Every answer in the two shipped adapters carries its date, its version and its evidence sentence, and `superharness rubric` and `superharness check` print them. Three of Codex's answers (remote control, the question card, helper agents) rest on the operator's firsthand report of 2026-10-13, and each sentence says so. One, a rule that says no to a tool on Codex, was measured by this package with a single live run that day on codex-cli 0.162.1: the rule fired, Codex reported the command blocked, and the file the command would have made was not created.
+
+Both check all eleven boxes, and the scorecard still tells them apart. A question card on Codex has been reported to answer itself on a timer (openai/codex issue 28969, open on 2026-10-13, and the operator's own report), so Codex scores nothing on the row "A question waits for me as long as it takes" and totals 13.7 of 16 against Claude Code's 15.6. Neither answer on that row was timed by this package, and both evidence sentences say so.
 
 ## Where this came from
 
-It was extracted from the harness resolver inside Freedom. For Claude Code and Codex, every value that resolver returned is returned here unchanged, and the tests that pinned those values there were ported here before the adapters were written.
+It was extracted from the harness resolver inside Freedom, and was first published as a contract any harness could pass with six core clauses. Version 0.2.0 turned that into a bar. For Claude Code and Codex, every path and name that resolver returned is returned here unchanged, and the tests that pinned those values there were ported here before the adapters were written.
 
 ## License
 

@@ -1,4 +1,4 @@
-// The conformance check: one result per clause of the contract, for any profile.
+// The check: one result per clause of the standard, then one per box of the bar, for any profile.
 //
 // The check walks CLAUSES, so a new clause or a new adapter never means a new checker. It has two
 // halves. `checkStatic` reads the profile and needs nothing installed. `checkLive` needs a machine
@@ -7,6 +7,8 @@ import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { CLAUSES } from "./contract.mjs";
+import { BAR, checkBar } from "./bar.mjs";
+import { questionCardProblem } from "./card.mjs";
 
 const ANSWERS = ["yes", "no", "unmeasured"];
 const ROUTES = ["hook-context", "file"];
@@ -86,6 +88,10 @@ function checkClause(profile, clause, home) {
   if (clause.kind === "string") return checkString(clause, v);
   if (clause.group === "abilities") return checkAbility(v);
   if (clause.key === "deliverIdentity") return checkIdentity(v, home);
+  if (clause.key === "questionCard") {
+    const problem = questionCardProblem(v);
+    return problem ? fail(problem) : pass(`${v.tools.join(", ")}; answered by ${v.answeredBy}`);
+  }
   return v && typeof v === "object" ? pass("an object") : fail("must be an object");
 }
 
@@ -109,25 +115,40 @@ function checkPurity(profile, home) {
     : pass("no place getter reads process.env");
 }
 
-/** One result per clause, in the contract's order, then the purity rule. Needs nothing installed. */
+/**
+ * One result per clause, in the standard's order, then the purity rule, then one row per box of
+ * the bar (`bar.<id>`, level "bar"). Needs nothing installed.
+ */
 export function checkStatic(profile, { home = "/home/probe" } = {}) {
   const results = CLAUSES.map((clause) => ({ id: clause.id, level: clause.level, ...checkClause(profile, clause, home) }));
   results.push({ id: "purity", level: "core", ...checkPurity(profile, home) });
+  for (const b of checkBar(profile)) results.push({ id: `bar.${b.id}`, level: "bar", half: b.half, ok: b.ok, why: b.why });
   return results;
 }
 
 /**
- * Pass means every core row is ok and nothing is malformed. A row with `ok: null` was skipped or
- * could not be measured here; it is neither a pass nor a failure.
+ * Two answers. `pass` is about the clauses: every core row is ok and nothing is malformed.
+ * `superharness` is about the bar: all eleven boxes are checked. A box that is not checked is a
+ * missing box, listed in `bar.missing`; it is not a malformed clause and is never in `failed`.
+ * A row with `ok: null` was skipped or could not be measured here; it is neither a pass nor a
+ * failure.
  */
 export function summarize(results) {
+  const clauses = results.filter((r) => r.level !== "bar");
+  const boxes = results.filter((r) => r.level === "bar");
   const count = (level) => {
-    const rows = results.filter((r) => r.level === level && r.ok !== null);
+    const rows = clauses.filter((r) => r.level === level && r.ok !== null);
     return { ok: rows.filter((r) => r.ok === true).length, total: rows.length };
   };
-  const failed = results.filter((r) => r.ok === false).map((r) => r.id);
+  const failed = clauses.filter((r) => r.ok === false).map((r) => r.id);
   const core = count("core"), optional = count("optional");
-  return { pass: failed.length === 0 && core.ok === core.total, core, optional, failed };
+  const bar = {
+    ok: boxes.filter((r) => r.ok === true).length,
+    total: boxes.length,
+    missing: boxes.filter((r) => r.ok !== true).map((r) => r.id.replace(/^bar\./, "")),
+  };
+  return { pass: failed.length === 0 && core.ok === core.total, core, optional, failed,
+    superharness: bar.total === BAR.length && bar.ok === bar.total, bar };
 }
 
 const defaultRun = (cmd, args) =>
@@ -172,7 +193,7 @@ export async function checkLive(profile, { home = homedir(), run = defaultRun, e
     results.push({ id: "live.configDir", level: "optional", ok: there, why: there ? `${dir} exists` : `${dir} does not exist` });
   }
   for (const p of SESSION_PROBES) {
-    results.push({ id: `live.session.${p}`, level: "optional", ok: null, why: "needs an interactive probe; see CONTRACT.md, Live check" });
+    results.push({ id: `live.session.${p}`, level: "optional", ok: null, why: "needs an interactive probe; see STANDARD.md, Live check" });
   }
   return results;
 }

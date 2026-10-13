@@ -1,15 +1,16 @@
-// Claude Code's answers to the harness contract.
+// Claude Code's answers to the superharness standard.
 //
 // THE SAFETY PROPERTY. Every key Freedom's own profile had (v6.29.0, freedom-harness.mjs) returns
 // the SAME STRING here for the same environment, home, working directory and session id. Not an
 // equivalent value: the same one, pinned in test/adapters.test.mjs against the literal and the
-// call site it came from. The contract's additions (moments, abilities, deliverIdentity,
-// startBackground, runPrompt, vocabulary) sit beside those keys and change none of them.
+// call site it came from. The standard's additions (moments, abilities, deliverIdentity,
+// startBackground, runPrompt, questionCard, vocabulary) sit beside those keys and change none of them.
 //
 // No getter reads process.env or the real home. The environment is the factory's argument and the
 // home is each getter's argument, so a test, a probe and a hook under launchd get one answer.
 import { join } from "node:path";
 import { claudeBin } from "../bin-resolver.mjs";
+import { cardReader } from "../card.mjs";
 import { defineHarness } from "../define.mjs";
 
 /** An env var that is set but blank is unset, which is what every call site's `.trim()` means. */
@@ -70,6 +71,14 @@ export default (env = {}) => {
     startBackground: ({ prompt, name = "Freedom", extra = [] }) =>
       ({ cmd: "claude", args: ["--bg", ...extra, "--name", name, "--", prompt] }),
     runPrompt: ({ prompt, extra = [] }) => ({ cmd: "claude", args: ["-p", ...extra, prompt] }),
+    // AskUserQuestion's input is { questions: [{ question, header, multiSelect, options: [{ label,
+    // description }] }] }. The person's choice comes back as the tool's own result.
+    questionCard: {
+      tools: ["AskUserQuestion"],
+      shape: "claude",
+      read: cardReader((q) => ({ text: q.question, options: (Array.isArray(q.options) ? q.options : []).map((o) => o?.label) })),
+      answeredBy: "tool-result",
+    },
     vocabulary: { askOperator: "AskUserQuestion", note: null },
     abilities: {
       backgroundSession: yes("`claude --help` on this version lists `--bg, --background`, and Freedom's spin-up-freedom-session script dispatches every background session with `claude --bg`."),
@@ -81,6 +90,9 @@ export default (env = {}) => {
       liveSessionRegistry: yes("~/.claude/sessions held per-process <pid>.json records for running sessions on the measuring Mac (28 entries that day)."),
       liveSessions: yes("Running sessions are listed by reading the ~/.claude/sessions registry, which Freedom's roster does."),
       askCard: yes("Claude Code exposes the AskUserQuestion tool, and Freedom's away-board hook acts on calls to it."),
+      cardWaits: yes("Read from the program text of this version, not timed on a session: its settings list `askUserQuestionTimeout` with the choices 60s, 5m, 10m and never, described as the idle time before a question continues with the answers selected so far, and say it defaults to never and runs only when set. The setting is absent from the settings file on the measuring Mac."),
+      refuseTool: yes("Freedom's hooks deny tool calls through PreToolUse on Claude Code daily: hooks/away-board.mjs replies with permissionDecision deny, and tests/hook-codex-output.test.mjs pins that a deny reaches Claude Code exactly as the hook wrote it. On 2026-10-13 a PreToolUse hook blocked a Bash command in the Claude Code session that built this version."),
+      permissionGate: yes("Read from `claude --help` on this version: it lists `--permission-mode` (acceptEdits, auto, bypassPermissions, manual, dontAsk, plan), `--allowedTools` (a list of tool names to allow) and `--disallowedTools` (a list of tool names to deny). This is the help text, not a session that was watched refusing."),
     },
   });
 };

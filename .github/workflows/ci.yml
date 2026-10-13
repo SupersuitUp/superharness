@@ -24,4 +24,4 @@ jobs:
       # The package must run the way the README says, from outside the repo.
       - run: |
           cd "$RUNNER_TEMP"
-          node "$GITHUB_WORKSPACE/bin/harness-harnesser.mjs" --help
+          node "$GITHUB_WORKSPACE/bin/superharness.mjs" --help
