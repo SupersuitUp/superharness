@@ -16,17 +16,29 @@ const isDate = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
 const filled = (s) => typeof s === "string" && s.trim().length > 0;
 const round1 = (n) => Math.round(n * 10) / 10;
 
+export const HARNESSABILITY = "Harnessability is how far your own context can reshape a harness: what it calls itself, how it behaves, what it does unprompted, and whether you can turn it while it works.";
+
+/** The two qualities a row can belong to. Every row has exactly one. */
+export const QUALITIES = {
+  harnessability: HARNESSABILITY,
+  reach: "Reach is where and how a harness can work for you: from your phone, while you are away, through cards, helpers and connected tools.",
+};
+
 /** What an operator feels, in their words. A row with `ability` is answered from the adapter. */
 export const HARNESS_ROWS = [
-  { id: "phone", ability: "phone", weight: 3, feels: "I can reach it by remote control from my phone" },
-  { id: "backgroundSession", ability: "backgroundSession", weight: 2, feels: "It can work while I am not watching" },
-  { id: "moments", weight: 2, feels: "My rules run at every moment, not only some" },
-  { id: "identity", weight: 2, feels: "My chief of agents arrives whole" },
-  { id: "askCard", ability: "askCard", weight: 2, feels: "It can ask me a question as a card" },
-  { id: "cardWaits", ability: "cardWaits", weight: 2, feels: "A question waits for me as long as it takes" },
-  { id: "subagents", ability: "subagents", weight: 1, feels: "It can hand work to helpers" },
-  { id: "mcp", ability: "mcp", weight: 1, feels: "It can use my connected tools" },
-  { id: "liveSessions", ability: "liveSessions", weight: 1, feels: "I can see what is running" },
+  { id: "phone", ability: "phone", quality: "reach", weight: 3, feels: "I can reach it by remote control from my phone" },
+  { id: "backgroundSession", ability: "backgroundSession", quality: "reach", weight: 2, feels: "It can work while I am not watching" },
+  { id: "askCard", ability: "askCard", quality: "reach", weight: 2, feels: "It can ask me a question as a card" },
+  { id: "cardWaits", ability: "cardWaits", quality: "reach", weight: 2, feels: "A question waits for me as long as it takes" },
+  { id: "subagents", ability: "subagents", quality: "reach", weight: 1, feels: "It can hand work to helpers" },
+  { id: "mcp", ability: "mcp", quality: "reach", weight: 1, feels: "It can use my connected tools" },
+  { id: "liveSessions", ability: "liveSessions", quality: "reach", weight: 1, feels: "I can see what is running" },
+  { id: "moments", quality: "harnessability", weight: 2, feels: "My rules run at every moment, not only some" },
+  { id: "identity", quality: "harnessability", weight: 2, feels: "My chief of agents arrives whole" },
+  { id: "takesIdentity", ability: "takesIdentity", quality: "harnessability", weight: 2, feels: "It becomes who my files say it is: a name, a voice, rules of its own" },
+  { id: "followsStanding", ability: "followsStanding", quality: "harnessability", weight: 2, feels: "It follows my standing instructions without being reminded" },
+  { id: "steersMidTask", ability: "steersMidTask", quality: "harnessability", weight: 2, feels: "I can redirect it while it is working, without stopping it" },
+  { id: "extendsSystemPrompt", ability: "extendsSystemPrompt", quality: "harnessability", weight: 1, feels: "I can add to or replace the instructions it starts from, beyond a file in my folder" },
 ];
 
 /** The answer an ability really supports: a yes with no date, version or evidence is unmeasured. */
@@ -37,7 +49,7 @@ function settled(a) {
 }
 
 function scoreRow(row, profile) {
-  const base = { id: row.id, feels: row.feels, weight: row.weight };
+  const base = { id: row.id, quality: row.quality, feels: row.feels, weight: row.weight };
   if (row.ability) {
     const a = profile.abilities?.[row.ability] || {};
     const answer = settled(a);
@@ -60,7 +72,7 @@ function scoreRow(row, profile) {
 
 /**
  * A profile's scorecard. It starts with the pass line: whether the profile is a superharness, and
- * which boxes of the bar it is missing. `unmeasured` lists the rows nobody has measured, apart
+ * which boxes of the bar it is missing. `qualities` is a subtotal for each of the two qualities. `unmeasured` lists the rows nobody has measured, apart
  * from any no.
  */
 export function scoreHarness(profile) {
@@ -71,6 +83,10 @@ export function scoreHarness(profile) {
     id: profile.id, label: profile.label,
     superharness: missing.length === 0 && boxes.length === BAR.length,
     bar: { ok: boxes.length - missing.length, total: boxes.length, missing },
+    qualities: Object.fromEntries(Object.keys(QUALITIES).map((q) => [q, {
+      total: round1(rows.filter((r) => r.quality === q).reduce((n, r) => n + r.points, 0)),
+      max: HARNESS_ROWS.filter((r) => r.quality === q).reduce((n, r) => n + r.weight, 0),
+    }])),
     total: round1(rows.reduce((n, r) => n + r.points, 0)),
     max: HARNESS_ROWS.reduce((n, r) => n + r.weight, 0),
     rows,
@@ -131,6 +147,10 @@ const NEED_WORDS = {
   refuseTool: "a rule that can refuse a tool",
   permissionGate: "a permission gate",
   cardWaits: "a question card that waits for you",
+  followsStanding: "standing instructions followed without a reminder",
+  steersMidTask: "redirecting it while it works",
+  takesIdentity: "an identity taken from your files",
+  extendsSystemPrompt: "a way to add to the instructions it starts from",
   backgroundSession: "sessions that work while you are not watching",
   pluginHooks: "hooks that ship inside a plugin",
   slashCommands: "slash commands",

@@ -17,8 +17,9 @@ Added:
 
 - The bar, as data: `BAR`, eleven boxes in two halves (capability and safety), each with the sentence a person reads and the clauses it is decided from. `DEFINITION` is the one sentence.
 - `checkBar(profile)` and `isSuperharness(profile)`. Every box is decided only from what the adapter declares. A box that rests on an ability needs a yes with a date, a version and an evidence sentence.
-- Three abilities, `refuseTool`, `permissionGate` and `cardWaits`, after the original nine. `cardWaits` means a question card waits for the person as long as it takes and never answers itself. It is not a box of the bar.
-- A scorecard row for it, weight 2: "A question waits for me as long as it takes". The maximum is now 16.
+- Seven abilities after the original nine. Two are read by the bar: `refuseTool` and `permissionGate`. Five are read only by the scorecard: `cardWaits`, `followsStanding`, `steersMidTask`, `takesIdentity` and `extendsSystemPrompt`.
+- Five scorecard rows, one for each of those five. The maximum is now 23.
+- A named quality, harnessability: how far your own context can reshape a harness. Every scorecard row has a `quality`, `harnessability` or `reach`, `scoreHarness()` returns a subtotal for each in `qualities`, and `rubric` prints them. `RUBRIC.md` says how to produce a result for each harnessability row.
 - One action clause, `questionCard`: which tools show a card, how a card is read, and what counts as the answer (`tool-result` or `next-user-message`), with an optional `answerPolicy` sentence. Codex's says a card that expires, disappears or returns a preselected option is not an answer. `cardFrom({ tool_name, tool_input }, profile)` reads one from a tool call.
 - `remoteControl` as a second name for the `phone` ability, on `can` and on `abilities`. The key `phone` is unchanged.
 - The `bar` command, which prints only the eleven boxes.
@@ -42,7 +43,11 @@ What was measured, on what version and date:
 - Claude Code `permissionGate`: yes, 2026-10-13, 2.1.296, read from `claude --help`: `--permission-mode`, `--allowedTools` and `--disallowedTools`. This is the help text, not a session that was watched refusing.
 - Codex `cardWaits`: no, 2026-10-13, codex-cli 0.162.1. openai/codex issue 28969, first reported on codex-cli 0.141.0 and still open that day, reports that Codex accepts the recommended answer to a question by itself within 60 seconds, and the operator reports the same from his own use. This package did not re-time it on the installed version.
 - Claude Code `cardWaits`: yes, 2026-10-13, 2.1.296, read from the program's settings text: `askUserQuestionTimeout` has the choices 60s, 5m, 10m and never, and is described as defaulting to never. Not timed on a session.
-- Both shipped harnesses check all eleven boxes. On the scorecard Claude Code is 15.6 of 16 and Codex is 13.7 of 16. The two points are the `cardWaits` row; on the moments row Codex names 12 against 11.
+- Codex `followsStanding`: no, 2026-09-23, 0.156.0, from Freedom's test notes: in three `codex exec` runs the model asked in plain chat and never used the tool its instructions named, and used it only when the prompt named it. The operator reported the same on 2026-10-13. Not rerun on the installed version. Claude Code: not measured, because the same protocol has not been run on it.
+- `steersMidTask`: Claude Code yes, 2026-10-13, 2.1.296: messages sent while the agent was mid-turn were delivered inside the running turn and acted on. Codex no, 2026-10-13, codex-cli 0.162.1, on the operator's firsthand report; no timed test was run.
+- `takesIdentity`: Codex yes, 2026-09-23, 0.156.0, from Freedom's test notes. Claude Code yes, 2026-10-13, 2.1.296, on the commissioning session's report.
+- `extendsSystemPrompt`: Claude Code yes, read from `claude --help` (`--append-system-prompt`, `--system-prompt`). Codex yes, read from its help (`-c, --config`) and its program text (the config keys `developer_instructions` and `model_instructions_file`); its help lists no flag that names the instructions. Neither was exercised on a session.
+- Both shipped harnesses check all eleven boxes. On the scorecard Claude Code is 20.6 of 23 (harnessability 8.6 of 11, reach 12 of 12) and Codex is 16.7 of 23 (harnessability 6.7 of 11, reach 10 of 12).
 - The three session-level live rows (`live.session.*`) are still not filled in by this package for either harness.
 
 ## 0.1.1

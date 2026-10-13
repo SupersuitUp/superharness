@@ -342,6 +342,26 @@ test("cardWaits: Claude Code's answer says it was read from the program's settin
   assert.match(a.evidence, /never/);
   assert.match(a.evidence, /not timed/);
 });
+test("the harnessability answers say what was run, by whom, on which version, and what was not rerun", () => {
+  const cx = codex({}).abilities, cc = claudeCode({}).abilities;
+  assert.deepEqual([cx.followsStanding.answer, cx.followsStanding.measured, cx.followsStanding.version], ["no", "2026-09-23", "0.156.0"]);
+  assert.match(cx.followsStanding.evidence, /Freedom's test notes/);
+  assert.match(cx.followsStanding.evidence, /three `codex exec` runs/);
+  assert.match(cx.followsStanding.evidence, /not rerun on the installed version/);
+  assert.equal(cc.followsStanding.answer, "unmeasured");
+  assert.match(cc.followsStanding.evidence, /has not been run on Claude Code/);
+  assert.deepEqual([cc.steersMidTask.answer, cc.steersMidTask.measured, cc.steersMidTask.version], ["yes", "2026-10-13", "2.1.296 (Claude Code)"]);
+  assert.deepEqual([cx.steersMidTask.answer, cx.steersMidTask.measured, cx.steersMidTask.version], ["no", "2026-10-13", "codex-cli 0.162.1"]);
+  assert.match(cx.steersMidTask.evidence, /operator's firsthand report/);
+  assert.match(cx.steersMidTask.evidence, /no timed test was run/);
+  assert.deepEqual([cx.takesIdentity.answer, cx.takesIdentity.measured, cx.takesIdentity.version], ["yes", "2026-09-23", "0.156.0"]);
+  assert.equal(cc.takesIdentity.answer, "yes");
+  assert.match(cc.extendsSystemPrompt.evidence, /--append-system-prompt/);
+  assert.match(cc.extendsSystemPrompt.evidence, /--system-prompt/);
+  assert.equal(cx.extendsSystemPrompt.answer, "yes");
+  assert.match(cx.extendsSystemPrompt.evidence, /developer_instructions/);
+  assert.match(cx.extendsSystemPrompt.evidence, /no flag/i);
+});
 test("no evidence sentence states a motive or carries an em dash", () => {
   for (const p of [claudeCode({}), codex({})])
     for (const [k, a] of Object.entries(p.abilities)) {

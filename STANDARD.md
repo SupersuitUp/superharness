@@ -162,8 +162,20 @@ Things a harness may or may not have. Each is answered `yes`, `no` or `unmeasure
 - `abilities.refuseTool` (optional): Whether the harness has "refuseTool": { answer: yes | no | unmeasured, measured, version, evidence }.
 - `abilities.permissionGate` (optional): Whether the harness has "permissionGate": { answer: yes | no | unmeasured, measured, version, evidence }.
 - `abilities.cardWaits` (optional): Whether the harness has "cardWaits": { answer: yes | no | unmeasured, measured, version, evidence }.
+- `abilities.followsStanding` (optional): Whether the harness has "followsStanding": { answer: yes | no | unmeasured, measured, version, evidence }.
+- `abilities.steersMidTask` (optional): Whether the harness has "steersMidTask": { answer: yes | no | unmeasured, measured, version, evidence }.
+- `abilities.takesIdentity` (optional): Whether the harness has "takesIdentity": { answer: yes | no | unmeasured, measured, version, evidence }.
+- `abilities.extendsSystemPrompt` (optional): Whether the harness has "extendsSystemPrompt": { answer: yes | no | unmeasured, measured, version, evidence }.
 
-`abilities.cardWaits` means a question card waits for the person as long as it takes, and never answers itself. It is not a box of the bar. It is a row of the [rubric](./RUBRIC.md), so a superharness whose cards do not wait is still a superharness and scores less.
+Five abilities are not read by any box. They are rows of the [rubric](./RUBRIC.md), so they tell superharnesses apart without deciding who is one:
+
+- `abilities.cardWaits`: a question card waits for the person as long as it takes, and never answers itself.
+- `abilities.followsStanding`: it follows standing instructions without being reminded.
+- `abilities.steersMidTask`: it can be redirected while it is working, without being stopped.
+- `abilities.takesIdentity`: it becomes who the instruction files say it is.
+- `abilities.extendsSystemPrompt`: the instructions it starts from can be added to or replaced, beyond a file in a folder.
+
+Box 2, instructions that load whole, is the floor of harnessability, and the scorecard measures how far above the floor a harness goes.
 
 `abilities.phone` is remote control. Every profile also answers under `abilities.remoteControl` and `can.remoteControl`, with the same answer.
 

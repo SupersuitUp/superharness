@@ -83,6 +83,17 @@ test("RUBRIC.md names every row with its weight", () => {
   for (const r of MODEL_ROWS) assert.ok(doc.includes(r.task), `RUBRIC.md is missing the task for ${r.id}`);
   assert.ok(doc.includes("A row with no measurement scores nothing and is shown as not measured."));
 });
+test("RUBRIC.md defines harnessability, lists its rows, and says how the steerability rows are produced", async () => {
+  const { HARNESSABILITY } = await import("../src/rubric.mjs");
+  const doc = read("RUBRIC.md");
+  assert.ok(doc.includes(HARNESSABILITY));
+  const section = doc.split(/^## Harnessability$/m)[1]?.split(/^## /m)[0];
+  assert.ok(section, "no Harnessability section");
+  for (const r of HARNESS_ROWS.filter((r) => r.quality === "harnessability")) assert.ok(section.includes("`" + r.id + "`"), r.id);
+  for (const r of HARNESS_ROWS.filter((r) => r.quality === "reach")) assert.ok(!section.includes("| `" + r.id + "` |"), r.id);
+  for (const words of ["No hint", "away from the desk", "by name", "three runs", "without the task being stopped"]) assert.ok(doc.includes(words), words);
+  assert.match(read("STANDARD.md"), /floor of harnessability/);
+});
 test("no prose file contains an em dash", () => {
   for (const f of PROSE) assert.ok(!read(f).includes("—"), `${f} has an em dash`);
 });

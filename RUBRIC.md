@@ -18,31 +18,71 @@ A "yes" that arrives without a date, a version and an evidence sentence is treat
 
 ## The harness scorecard
 
-Each row is something an operator feels. The maximum is 16.
+Each row is something an operator feels. The maximum is 23. Every row belongs to one of two qualities, and the scorecard prints a subtotal for each.
 
-Some rows repeat a box of the bar, so every superharness scores them in full: remote control, working while you are not watching, the question card, helpers and connected tools. They stay on the card so that a harness which is not a superharness can be read on the same page. The rows that tell two superharnesses apart are the ones the bar does not settle: whether a question waits for you, how many moments the harness names, and whether you can see what is running.
+- **Reach** (12 points) is where and how a harness can work for you: from your phone, while you are away, through cards, helpers and connected tools.
+- **Harnessability** (11 points) is defined in its own section below.
+
+Some reach rows repeat a box of the bar, so every superharness scores them in full: remote control, working while you are not watching, the question card, helpers and connected tools. They stay on the card so that a harness which is not a superharness can be read on the same page. The rows that tell two superharnesses apart are the ones the bar does not settle.
+
+### Reach
 
 | Row | What you would say | Weight | How it is answered |
 | --- | --- | --- | --- |
 | `phone` | I can reach it by remote control from my phone | 3 | The adapter's `phone` ability, which is remote control |
 | `backgroundSession` | It can work while I am not watching | 2 | The adapter's `backgroundSession` ability |
-| `moments` | My rules run at every moment, not only some | 2 | Computed: the share of the standard's 14 moments the harness names, scaled to the weight and rounded to one decimal |
-| `identity` | My chief of agents arrives whole | 2 | Computed: 2 when instruction files arrive as session-start hook context, or are written to a file the harness reads and the adapter says where |
 | `askCard` | It can ask me a question as a card | 2 | The adapter's `askCard` ability |
 | `cardWaits` | A question waits for me as long as it takes | 2 | The adapter's `cardWaits` ability: a card never answers itself |
 | `subagents` | It can hand work to helpers | 1 | The adapter's `subagents` ability |
 | `mcp` | It can use my connected tools | 1 | The adapter's `mcp` ability |
 | `liveSessions` | I can see what is running | 1 | The adapter's `liveSessions` ability |
 
-### Why these weights
-
 - **Remote control is 3** because it decides where you can work from. Without it, every session waits for you to be at the computer.
-- **Background sessions, moments, identity, the question card and a question that waits are 2 each.** Each one changes how much the system can do without you: work that continues while you are away, rules that run at every point instead of some, instructions that arrive complete, a question you can answer with one tap, and a question that is still there when you get to it. A card that answers itself on a timer has made a decision that was yours.
+- **Background sessions, the question card and a question that waits are 2 each.** Work that continues while you are away, a question you can answer with one tap, and a question that is still there when you get to it. A card that answers itself on a timer has made a decision that was yours.
 - **Helpers, connected tools and the list of running sessions are 1 each.** They matter, and a session is still useful without any one of them.
 
-A yes scores the full weight. A no and a not measured both score 0, and the scorecard lists the not measured rows apart so they never read as a no.
+## Harnessability
 
-### What the two shipped adapters score
+Harnessability is how far your own context can reshape a harness: what it calls itself, how it behaves, what it does unprompted, and whether you can turn it while it works.
+
+Box 2 of the bar, instructions that load whole, is the floor. These rows measure how far above the floor a harness goes.
+
+| Row | What you would say | Weight | How it is answered |
+| --- | --- | --- | --- |
+| `moments` | My rules run at every moment, not only some | 2 | Computed: the share of the standard's 14 moments the harness names, scaled to the weight and rounded to one decimal |
+| `identity` | My chief of agents arrives whole | 2 | Computed: 2 when instruction files arrive as session-start hook context, or are written to a file the harness reads and the adapter says where |
+| `takesIdentity` | It becomes who my files say it is: a name, a voice, rules of its own | 2 | The adapter's `takesIdentity` ability |
+| `followsStanding` | It follows my standing instructions without being reminded | 2 | The adapter's `followsStanding` ability |
+| `steersMidTask` | I can redirect it while it is working, without stopping it | 2 | The adapter's `steersMidTask` ability |
+| `extendsSystemPrompt` | I can add to or replace the instructions it starts from, beyond a file in my folder | 1 | The adapter's `extendsSystemPrompt` ability |
+
+The same three rules apply to every one of these rows. A row says what was measured, on which version, on which date. Anyone can rerun it and send a result. Nothing here says why a harness behaves as it does, only what it was seen to do. A row nobody has measured scores nothing and is listed as not measured, apart from any no.
+
+### How to produce a result for `takesIdentity`
+
+Write an identity into the instruction route the adapter's `deliverIdentity` names: a name for the agent, a codeword that appears nowhere else, and two standing rules. Start a fresh session and ask who it is, what the codeword is, and what its rules are. Yes when the name, the codeword and both rules come back.
+
+### How to produce a result for `followsStanding`
+
+The standing instruction is one the harness receives through its own instruction route and is never repeated in the prompt: when you need something from the person, use this named tool. The task is one that cannot be finished without something from the person.
+
+Run it under three conditions, three runs each, every run a fresh session:
+
+1. **No hint.** The prompt gives the task and nothing else.
+2. **Told the person is away.** The prompt adds that the person is away from the desk and on a phone.
+3. **Told the tool by name.** The prompt names the tool.
+
+Record, for every run, whether the tool was used or the model asked in plain chat. The row is a yes only if the tool is used in the first two conditions. The third condition is the control: it shows the tool works when named, so a no in the first two is about following the standing instruction and not about a broken tool.
+
+### How to produce a result for `steersMidTask`
+
+Start a task with several steps that takes a few minutes. While it is running, and without stopping it, send a message that redirects it: a different target, or one step to skip. Record whether the next action follows the redirect without the task being stopped. Yes when it does. No when the message waits until the task ends, or when the only way to deliver it is to interrupt and start again.
+
+### How to produce a result for `extendsSystemPrompt`
+
+Find a flag or a config key, in the harness's own help or program text, that appends to or replaces the instructions a session starts from. Quote its name. A stronger result starts a session with it and plants a codeword there.
+
+## What the two shipped adapters score
 
 These are the answers in the adapter files on the day this version was written. Run `superharness rubric` to see the current ones with the evidence sentence for every row.
 
@@ -51,20 +91,30 @@ These are the answers in the adapter files on the day this version was written. 
 | Superharness | yes, 11 of 11 | yes, 11 of 11 |
 | `phone` | yes, measured 2026-10-13 on 2.1.296 | yes, measured 2026-10-13 on codex-cli 0.162.1, on the operator's report |
 | `backgroundSession` | yes, measured 2026-10-13 on 2.1.296 | yes, measured 2026-09-24 on 0.156.0 |
-| `moments` | 11 of 14 | 12 of 14 |
-| `identity` | hook context | file |
 | `askCard` | yes, measured 2026-10-13 on 2.1.296 | yes, measured 2026-10-13 on codex-cli 0.162.1, on the operator's report |
 | `cardWaits` | yes, read from the 2.1.296 program text on 2026-10-13, not timed | no, 2026-10-13 on codex-cli 0.162.1, from an open issue and the operator's report |
 | `subagents` | yes, measured 2026-10-13 on 2.1.296 | yes, measured 2026-10-13 on codex-cli 0.162.1, on the operator's report |
 | `mcp` | yes, measured 2026-10-13 on 2.1.296 | yes, measured 2026-09-23 on 0.156.0 |
 | `liveSessions` | yes, measured 2026-10-13 on 2.1.296 | yes, measured 2026-09-23 on 0.156.0 |
-| **Total** | **15.6 of 16** | **13.7 of 16** |
+| **Reach** | **12 of 12** | **10 of 12** |
+| `moments` | 11 of 14 | 12 of 14 |
+| `identity` | hook context | file |
+| `takesIdentity` | yes, 2026-10-13 on 2.1.296, on the commissioning session's report | yes, measured 2026-09-23 on 0.156.0 |
+| `followsStanding` | not measured | no, measured 2026-09-23 on 0.156.0, not rerun on 0.162.1 |
+| `steersMidTask` | yes, measured 2026-10-13 on 2.1.296 | no, 2026-10-13 on codex-cli 0.162.1, on the operator's report, no timed test |
+| `extendsSystemPrompt` | yes, read from the help text of 2.1.296 on 2026-10-13 | yes, read from the help and program text of codex-cli 0.162.1 on 2026-10-13 |
+| **Harnessability** | **8.6 of 11** | **6.7 of 11** |
+| **Total** | **20.6 of 23** | **16.7 of 23** |
 
-Three things about the Codex column. Remote control, the question card and helpers each rest on the operator's firsthand report of 2026-10-13, and each evidence sentence says so. This package did not start remote control, show a card or start a helper itself. A run anyone records replaces a report with an observation.
+How to read the differences:
 
-The two points between the totals are the `cardWaits` row. Codex's answer is a no: openai/codex issue 28969, first reported on codex-cli 0.141.0 and still open on 2026-10-13, reports that Codex accepts the recommended answer to a question by itself within 60 seconds, and the operator reports the same from his own use. This package did not re-time it on the installed version, and the evidence sentence says so. Claude Code's yes was read from the program's settings text, which gives the question timeout the choices 60s, 5m, 10m and never and says it defaults to never. It was not timed on a session either.
+- **`cardWaits`.** Codex's answer is a no: openai/codex issue 28969, first reported on codex-cli 0.141.0 and still open on 2026-10-13, reports that Codex accepts the recommended answer to a question by itself within 60 seconds, and the operator reports the same from his own use. This package did not re-time it on the installed version. Claude Code's yes was read from the program's settings text, which gives the question timeout the choices 60s, 5m, 10m and never and says it defaults to never. It was not timed on a session either.
+- **`followsStanding`.** Codex's no comes from Freedom's test notes of 2026-09-23 on 0.156.0, under the protocol above, and was not rerun on the installed version. Claude Code has not been run under that protocol, so its row is not measured and scores nothing. The two points are not a comparison between the two harnesses until it is.
+- **`steersMidTask`.** Claude Code's yes was observed on 2026-10-13. Codex's no is the operator's firsthand report that day, and no timed test was run.
+- **`moments`.** Codex names 12 of the 14 moments and Claude Code names 11.
+- **Reports and readings.** Remote control, the question card and helpers on Codex each rest on the operator's firsthand report of 2026-10-13. Several answers on both sides were read from help or program text and not from a session. Every evidence sentence says which it is, and a run anyone records replaces a report or a reading with an observation.
 
-On the moments row Codex is a tenth ahead: it names 12 of the 14 moments and Claude Code names 11. One more difference is not on this card. Claude Code keeps a registry of running sessions and Codex was measured not to, which is the `liveSessionRegistry` ability, and it decides the recommendation for anyone who names it as a need.
+One more difference is not on this card. Claude Code keeps a registry of running sessions and Codex was measured not to, which is the `liveSessionRegistry` ability, and it decides the recommendation for anyone who names it as a need.
 
 ## The model scorecard
 

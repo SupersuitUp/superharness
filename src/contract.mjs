@@ -10,7 +10,8 @@ export const CONTRACT_VERSION = STANDARD_VERSION;
 // `can.phone`; `defineHarness` mirrors it as `remoteControl`.
 export const ABILITIES = ["phone", "backgroundSession", "pluginHooks", "slashCommands",
   "subagents", "mcp", "liveSessionRegistry", "liveSessions", "askCard",
-  "refuseTool", "permissionGate", "cardWaits"];
+  "refuseTool", "permissionGate", "cardWaits",
+  "followsStanding", "steersMidTask", "takesIdentity", "extendsSystemPrompt"];
 
 export const MOMENTS = ["sessionStart", "sessionEnd", "promptSubmitted", "beforeTool",
   "afterTool", "toolFailed", "permissionRequest", "beforeCompact", "afterCompact",

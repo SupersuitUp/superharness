@@ -98,7 +98,7 @@ One line per clause of the standard and a line counting them, then one line per 
 ```
 $ superharness check codex | tail -14
 PASS  purity                         core      no place getter reads process.env
-clauses: core 7 of 7, optional 39 of 39
+clauses: core 7 of 7, optional 43 of 43
 PASS  computer       capability  It works on your computer: it reads and writes your files and runs programs in folders you choose.
 PASS  instructions   capability  It loads your instructions whole, every session.
 PASS  skills         capability  It reads skills from a folder, in the open skill format.
@@ -149,26 +149,28 @@ exit 0
 
 ### `superharness rubric`
 
-Whether each harness is a superharness, then the scorecard for each, with the date, the version and the evidence behind every row. With `--needs`, the last line is the recommendation. It exits 1 when you named a need and no superharness meets it.
+Whether each harness is a superharness, then the scorecard for each, with a subtotal for its two qualities (reach, and harnessability: how far your own context can reshape it) and the date, the version and the evidence behind every row. With `--needs`, the last line is the recommendation. It exits 1 when you named a need and no superharness meets it.
 
 ```
 $ superharness rubric --needs liveSessionRegistry
 Claude Code: superharness, 11 of 11 (standard 2.0.0)
 Codex: superharness, 11 of 11 (standard 2.0.0)
 
-Claude Code  15.6 of 16
+Claude Code  20.6 of 23
+  harnessability 8.6 of 11, reach 12 of 12
     3 of 3  I can reach it by remote control from my phone: yes, measured 2026-10-13 on 2.1.296 (Claude Code)
             `claude --help` on this version lists `--remote-control`, and the com.getfreedom.remotecontrol LaunchAgent that runs `claude remote-control` was loaded on the measuring Mac.
     2 of 2  It can work while I am not watching: yes, measured 2026-10-13 on 2.1.296 (Claude Code)
   ...
 
-Codex  13.7 of 16
+Codex  16.7 of 23
+  harnessability 6.7 of 11, reach 10 of 12
     3 of 3  I can reach it by remote control from my phone: yes, measured 2026-10-13 on codex-cli 0.162.1
+  ...
+    0 of 2  A question waits for me as long as it takes: no, measured 2026-10-13 on codex-cli 0.162.1
   ...
   1.7 of 2  My rules run at every moment, not only some: 12 of 14
             The adapter names 12 of the standard's 14 moments.
-  ...
-    0 of 2  A question waits for me as long as it takes: no, measured 2026-10-13 on codex-cli 0.162.1
   ...
 
 No model results ship with this package. A model scorecard is filled by a recorded run; see RUBRIC.md.
@@ -222,7 +224,7 @@ h.abilities.remoteControl;  // { answer, measured, version, evidence }
 isSuperharness(h);          // true
 checkBar(h);                // 11 rows: { id, half, ok, why }
 summarize(checkStatic(h));
-// { pass: true, core: { ok: 7, total: 7 }, optional: { ok: 39, total: 39 }, failed: [],
+// { pass: true, core: { ok: 7, total: 7 }, optional: { ok: 43, total: 43 }, failed: [],
 //   superharness: true, bar: { ok: 11, total: 11, missing: [] } }
 
 // Is this tool call a question card, and what does it ask?
@@ -248,7 +250,7 @@ recommend({ needs: ["liveSessionRegistry"] }, [h, codex]).because;
 | `register(id, factory)` | Makes an outside adapter resolvable by id |
 | `harnessId(opts)`, `harness(opts)`, `isSwapped(opts)`, `installed(profile, home)` | The resolver. `opts` is `{ env, home, config, envVar, configFile }`; `envVar` defaults to `FREEDOM_HARNESS` and `configFile` to `(home) => home/.freedom/config.json`, so another product can use its own names |
 | `checkStatic(profile)`, `checkLive(profile, opts)`, `summarize(results)` | The check. `summarize` returns `pass` for the clauses and `superharness` and `bar` for the boxes |
-| `HARNESS_ROWS`, `scoreHarness(profile)` | The harness scorecard, which starts with `superharness` and `bar` |
+| `HARNESS_ROWS`, `QUALITIES`, `HARNESSABILITY`, `scoreHarness(profile)` | The harness scorecard. Every row has a `quality`, and the card starts with `superharness` and `bar` and carries a subtotal per quality in `qualities` |
 | `MODEL_ROWS`, `MODEL_RESULTS`, `scoreModel(results)` | The model scorecard. `MODEL_RESULTS` is empty: a model scorecard is filled only by a recorded run |
 | `recommend({ needs }, profiles)` | `{ pick, because, ranked }`. Only a superharness is ever picked |
 | `remoteControlWarning(profile, { profiles })` | Three lines, or `null` when remote control is measured. `phoneLineWarning` is still exported and is the same function |
@@ -291,7 +293,7 @@ A harness that checks ten boxes is reported as ten of eleven, with the missing o
 
 Every answer in the two shipped adapters carries its date, its version and its evidence sentence, and `superharness rubric` and `superharness check` print them. Three of Codex's answers (remote control, the question card, helper agents) rest on the operator's firsthand report of 2026-10-13, and each sentence says so. One, a rule that says no to a tool on Codex, was measured by this package with a single live run that day on codex-cli 0.162.1: the rule fired, Codex reported the command blocked, and the file the command would have made was not created.
 
-Both check all eleven boxes, and the scorecard still tells them apart. A question card on Codex has been reported to answer itself on a timer (openai/codex issue 28969, open on 2026-10-13, and the operator's own report), so Codex scores nothing on the row "A question waits for me as long as it takes" and totals 13.7 of 16 against Claude Code's 15.6. Neither answer on that row was timed by this package, and both evidence sentences say so.
+Both check all eleven boxes, and the scorecard still tells them apart: Claude Code totals 20.6 of 23 and Codex 16.7. Three rows make the difference. A question card on Codex has been reported to answer itself on a timer (openai/codex issue 28969, open on 2026-10-13, and the operator's own report). Codex did not use the tool its standing instructions named in Freedom's test runs of 2026-09-23 on 0.156.0. And the operator reports that a working Codex session is harder to redirect. None of the three was rerun or timed by this package on the installed version, the middle one has not been run on Claude Code at all, and every evidence sentence says so. [RUBRIC.md](./RUBRIC.md) has the protocol for each, so anyone can produce a result that changes a row.
 
 ## Where this came from
 

@@ -199,6 +199,7 @@ async function main(argv) {
       out("");
       for (const c of cards) {
         out(`${c.label}  ${c.total} of ${c.max}`);
+        out(`  ${Object.entries(c.qualities).map(([q, v]) => `${q} ${v.total} of ${v.max}`).join(", ")}`);
         for (const r of c.rows) {
           out(`  ${String(r.points).padStart(3)} of ${r.weight}  ${r.feels}: ${shown(r)}${when(r)}`);
           if (r.evidence) out(`            ${r.evidence}`);

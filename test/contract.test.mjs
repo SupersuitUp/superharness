@@ -25,7 +25,8 @@ test("the core is small: places, the binary, identity delivery and session start
 test("the abilities and moments the contract names are fixed lists", () => {
   assert.deepEqual(ABILITIES.slice(0, 9), ["phone", "backgroundSession", "pluginHooks", "slashCommands",
     "subagents", "mcp", "liveSessionRegistry", "liveSessions", "askCard"]);
-  assert.deepEqual(ABILITIES.slice(9), ["refuseTool", "permissionGate", "cardWaits"]);
+  assert.deepEqual(ABILITIES.slice(9), ["refuseTool", "permissionGate", "cardWaits",
+    "followsStanding", "steersMidTask", "takesIdentity", "extendsSystemPrompt"]);
   assert.deepEqual(MOMENTS, ["sessionStart", "sessionEnd", "promptSubmitted", "beforeTool",
     "afterTool", "toolFailed", "permissionRequest", "beforeCompact", "afterCompact",
     "subagentStart", "subagentStop", "stop", "interrupt", "notification"]);

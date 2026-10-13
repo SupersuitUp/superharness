@@ -5,7 +5,7 @@ import codex from "../src/adapters/codex.mjs";
 import { defineHarness } from "../src/define.mjs";
 import { ABILITIES } from "../src/contract.mjs";
 import {
-  HARNESS_ROWS, MODEL_ROWS, MODEL_RESULTS, scoreHarness, scoreModel, recommend, remoteControlWarning, phoneLineWarning,
+  QUALITIES, HARNESSABILITY, HARNESS_ROWS, MODEL_ROWS, MODEL_RESULTS, scoreHarness, scoreModel, recommend, remoteControlWarning, phoneLineWarning,
 } from "../src/rubric.mjs";
 import { superToy, withAbilities, Y } from "./fixtures.mjs";
 
@@ -38,6 +38,60 @@ test("a profile that says its cards wait without evidence scores nothing on the 
   for (const partial of [{ ...Y, measured: undefined }, { ...Y, version: "" }, { ...Y, evidence: "" }])
     assert.equal(scoreHarness(withAbilities({ cardWaits: partial })).rows.find((r) => r.id === "cardWaits").points, 0);
   assert.equal(scoreHarness(withAbilities({ cardWaits: Y })).rows.find((r) => r.id === "cardWaits").points, 2);
+});
+test("harnessability is defined in one sentence, and every row belongs to one of the two qualities", () => {
+  assert.equal(HARNESSABILITY, "Harnessability is how far your own context can reshape a harness: what it calls itself, how it behaves, what it does unprompted, and whether you can turn it while it works.");
+  assert.deepEqual(Object.keys(QUALITIES), ["harnessability", "reach"]);
+  assert.equal(QUALITIES.harnessability, HARNESSABILITY);
+  for (const r of HARNESS_ROWS) assert.ok(r.quality in QUALITIES, r.id);
+});
+test("a scorecard carries a subtotal per quality, and the subtotals add up to the total", () => {
+  for (const p of [claudeCode({}), codex({}), toy(), superToy(), noRemote()]) {
+    const s = scoreHarness(p);
+    assert.deepEqual(Object.keys(s.qualities), ["harnessability", "reach"]);
+    assert.equal(s.qualities.harnessability.max, 11);
+    assert.equal(s.qualities.reach.max, 12);
+    assert.equal(s.qualities.harnessability.max + s.qualities.reach.max, s.max);
+    assert.equal(Math.round((s.qualities.harnessability.total + s.qualities.reach.total) * 10) / 10, s.total, p.id);
+    for (const q of Object.keys(QUALITIES))
+      assert.equal(s.qualities[q].total, Math.round(s.rows.filter((r) => r.quality === q).reduce((n, r) => n + r.points, 0) * 10) / 10, `${p.id} ${q}`);
+  }
+});
+test("the two shipped scorecards, by quality", () => {
+  const cc = scoreHarness(claudeCode({})), cx = scoreHarness(codex({}));
+  assert.deepEqual(cc.qualities, { harnessability: { total: 8.6, max: 11 }, reach: { total: 12, max: 12 } });
+  assert.deepEqual(cx.qualities, { harnessability: { total: 6.7, max: 11 }, reach: { total: 10, max: 12 } });
+  assert.equal(cc.total, 20.6);
+  assert.equal(cx.total, 16.7);
+});
+test("steerability: Codex scores nothing on either row; Claude Code scores one and has the other unmeasured", () => {
+  const row = (p, id) => scoreHarness(p).rows.find((r) => r.id === id);
+  for (const id of ["followsStanding", "steersMidTask"]) {
+    assert.equal(row(codex({}), id).points, 0, id);
+    assert.equal(row(codex({}), id).answer, "no", id);
+    assert.ok(!scoreHarness(codex({})).unmeasured.includes(id), id);
+  }
+  assert.equal(row(claudeCode({}), "steersMidTask").points, 2);
+  assert.equal(row(claudeCode({}), "followsStanding").points, 0);
+  assert.equal(row(claudeCode({}), "followsStanding").answer, "unmeasured");
+  assert.deepEqual(scoreHarness(claudeCode({})).unmeasured, ["followsStanding"]);
+});
+test("identity and the starting instructions: both shipped harnesses score both rows", () => {
+  for (const p of [claudeCode({}), codex({})]) {
+    const s = scoreHarness(p);
+    assert.equal(s.rows.find((r) => r.id === "takesIdentity").points, 2, p.id);
+    assert.equal(s.rows.find((r) => r.id === "extendsSystemPrompt").points, 1, p.id);
+  }
+});
+test("every ability row obeys the evidence rule: a bare or partial yes scores nothing, an evidenced yes scores the weight", () => {
+  for (const r of HARNESS_ROWS.filter((r) => r.ability)) {
+    const pts = (a) => scoreHarness(withAbilities({ [r.ability]: a })).rows.find((x) => x.id === r.id);
+    assert.equal(pts({ answer: "yes" }).points, 0, r.id);
+    assert.equal(pts({ answer: "yes" }).answer, "unmeasured", r.id);
+    for (const partial of [{ ...Y, measured: undefined }, { ...Y, version: "" }, { ...Y, evidence: "" }]) assert.equal(pts(partial).points, 0, r.id);
+    assert.equal(pts(Y).points, r.weight, r.id);
+    assert.equal(pts({ answer: "no", measured: "2026-01-02", version: "1", evidence: "seen not to" }).answer, "no", r.id);
+  }
 });
 test("a scorecard starts with the pass line: whether the harness is a superharness, and which boxes it misses", () => {
   for (const p of [claudeCode({}), codex({}), superToy()]) {
@@ -114,8 +168,16 @@ const toy = (over = {}) => defineHarness({ id: "toy", label: "Toy", configDir: (
 const measuredYes = { answer: "yes", measured: "2026-01-02", version: "1.0.0", evidence: "seen" };
 
 test("the rows and weights are the ones the rubric document states", () => {
-  assert.deepEqual(HARNESS_ROWS.map((r) => [r.id, r.weight]), [["phone", 3], ["backgroundSession", 2],
-    ["moments", 2], ["identity", 2], ["askCard", 2], ["cardWaits", 2], ["subagents", 1], ["mcp", 1], ["liveSessions", 1]]);
+  assert.deepEqual(HARNESS_ROWS.map((r) => [r.id, r.weight, r.quality]), [
+    ["phone", 3, "reach"], ["backgroundSession", 2, "reach"], ["askCard", 2, "reach"], ["cardWaits", 2, "reach"],
+    ["subagents", 1, "reach"], ["mcp", 1, "reach"], ["liveSessions", 1, "reach"],
+    ["moments", 2, "harnessability"], ["identity", 2, "harnessability"], ["takesIdentity", 2, "harnessability"],
+    ["followsStanding", 2, "harnessability"], ["steersMidTask", 2, "harnessability"], ["extendsSystemPrompt", 1, "harnessability"]]);
+  const feels = Object.fromEntries(HARNESS_ROWS.map((r) => [r.id, r.feels]));
+  assert.equal(feels.followsStanding, "It follows my standing instructions without being reminded");
+  assert.equal(feels.steersMidTask, "I can redirect it while it is working, without stopping it");
+  assert.equal(feels.takesIdentity, "It becomes who my files say it is: a name, a voice, rules of its own");
+  assert.equal(feels.extendsSystemPrompt, "I can add to or replace the instructions it starts from, beyond a file in my folder");
   assert.equal(HARNESS_ROWS.find((r) => r.id === "cardWaits").feels, "A question waits for me as long as it takes");
   assert.deepEqual(MODEL_ROWS.map((r) => [r.id, r.weight]), [["followsLongInstructions", 3],
     ["reachesForSkill", 2], ["asksWhenItIsYours", 3], ["saysWhatFailed", 2]]);
@@ -126,7 +188,7 @@ test("the rows and weights are the ones the rubric document states", () => {
 test("the max is the sum of the weights, and the total is the sum of the points", () => {
   for (const p of [claudeCode({}), codex({}), toy(), superToy()]) {
     const s = scoreHarness(p);
-    assert.equal(s.max, 16);
+    assert.equal(s.max, 23);
     assert.equal(s.total, Math.round(s.rows.reduce((n, r) => n + r.points, 0) * 10) / 10);
     assert.equal(s.id, p.id);
     assert.equal(s.label, p.label);
@@ -171,7 +233,7 @@ test("recommend ranks a superharness that has the need above one that does not, 
 test("recommend with no needs picks the highest total among superharnesses and says that is why", () => {
   const r = recommend({ needs: [] }, [codex({}), claudeCode({})]);
   assert.equal(r.pick, "claude-code");
-  assert.match(r.because, /^Claude Code, because it scores highest of the 2 superharnesses scored \(15\.6 of 16\)/);
+  assert.match(r.because, /^Claude Code, because it scores highest of the 2 superharnesses scored \(20\.6 of 23\)/);
   assert.equal(recommend({ needs: ["cardWaits"] }, [codex({}), claudeCode({})]).pick, "claude-code");
   assert.match(recommend({ needs: ["cardWaits"] }, [codex({})]).because, /a question card that waits for you \(measured no on 2026-10-13\)/);
 });

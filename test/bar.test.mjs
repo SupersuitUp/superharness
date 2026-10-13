@@ -44,8 +44,14 @@ test("every box names the clauses it reads, and each one is a clause of the stan
   const ids = new Set(CLAUSES.map((c) => c.id));
   for (const b of BAR) for (const n of b.needs) assert.ok(ids.has(n), `${b.id} needs ${n}, which is not a clause`);
 });
-test("the three new abilities are in the list, after the original nine", () => {
-  assert.deepEqual(ABILITIES.slice(9), ["refuseTool", "permissionGate", "cardWaits"]);
+test("the new abilities are in the list, after the original nine", () => {
+  assert.deepEqual(ABILITIES.slice(9, 12), ["refuseTool", "permissionGate", "cardWaits"]);
+});
+test("no scorecard-only ability is read by any box", () => {
+  for (const a of ["cardWaits", "followsStanding", "steersMidTask", "takesIdentity", "extendsSystemPrompt"])
+    assert.ok(BAR.every((b) => !b.needs.includes(`abilities.${a}`)), a);
+  // Take every one of them away and the toy is still a superharness.
+  assert.equal(isSuperharness(superToy()), true);
 });
 test("a card that waits is not a box: Codex checks box 11 with cardWaits a measured no", () => {
   const p = codex({});
