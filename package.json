@@ -1,0 +1,32 @@
+{
+  "name": "@supersuit/harness-harnesser",
+  "version": "0.1.0",
+  "description": "A public contract any agent harness can pass, the adapters that pass it today, a conformance check, and a rubric for choosing a harness and a model.",
+  "type": "module",
+  "bin": {
+    "harness-harnesser": "bin/harness-harnesser.mjs"
+  },
+  "exports": {
+    ".": "./src/index.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SupersuitUp/harness-harnesser.git"
+  },
+  "dependencies": {}
+}
