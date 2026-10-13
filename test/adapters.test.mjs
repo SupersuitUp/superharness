@@ -342,7 +342,7 @@ test("cardWaits: Claude Code's answer says it was read from the program's settin
   assert.match(a.evidence, /never/);
   assert.match(a.evidence, /not timed/);
 });
-test("the harnessability answers say what was run, by whom, on which version, and what was not rerun", () => {
+test("the moldability and steerability answers say what was run, by whom, on which version, and what was not rerun", () => {
   const cx = codex({}).abilities, cc = claudeCode({}).abilities;
   assert.deepEqual([cx.followsStanding.answer, cx.followsStanding.measured, cx.followsStanding.version], ["no", "2026-09-23", "0.156.0"]);
   assert.match(cx.followsStanding.evidence, /Freedom's test notes/);

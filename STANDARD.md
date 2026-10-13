@@ -175,7 +175,7 @@ Five abilities are not read by any box. They are rows of the [rubric](./RUBRIC.m
 - `abilities.takesIdentity`: it becomes who the instruction files say it is.
 - `abilities.extendsSystemPrompt`: the instructions it starts from can be added to or replaced, beyond a file in a folder.
 
-Box 2, instructions that load whole, is the floor of harnessability, and the scorecard measures how far above the floor a harness goes.
+Box 2, instructions that load whole, is the floor of moldability, and the scorecard measures how far above the floor a harness goes.
 
 `abilities.phone` is remote control. Every profile also answers under `abilities.remoteControl` and `can.remoteControl`, with the same answer.
 

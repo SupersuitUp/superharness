@@ -16,11 +16,13 @@ const isDate = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
 const filled = (s) => typeof s === "string" && s.trim().length > 0;
 const round1 = (n) => Math.round(n * 10) / 10;
 
-export const HARNESSABILITY = "Harnessability is how far your own context can reshape a harness: what it calls itself, how it behaves, what it does unprompted, and whether you can turn it while it works.";
+export const MOLDABILITY = "Moldability is how far your own context reshapes a harness before you say anything: what it calls itself, how it behaves, and what it does unprompted.";
+export const STEERABILITY = "Steerability is how well you can turn a harness while it is working, without stopping it.";
 
-/** The two qualities a row can belong to. Every row has exactly one. */
+/** The three qualities a row can belong to. Every row has exactly one. */
 export const QUALITIES = {
-  harnessability: HARNESSABILITY,
+  moldability: MOLDABILITY,
+  steerability: STEERABILITY,
   reach: "Reach is where and how a harness can work for you: from your phone, while you are away, through cards, helpers and connected tools.",
 };
 
@@ -33,12 +35,12 @@ export const HARNESS_ROWS = [
   { id: "subagents", ability: "subagents", quality: "reach", weight: 1, feels: "It can hand work to helpers" },
   { id: "mcp", ability: "mcp", quality: "reach", weight: 1, feels: "It can use my connected tools" },
   { id: "liveSessions", ability: "liveSessions", quality: "reach", weight: 1, feels: "I can see what is running" },
-  { id: "moments", quality: "harnessability", weight: 2, feels: "My rules run at every moment, not only some" },
-  { id: "identity", quality: "harnessability", weight: 2, feels: "My chief of agents arrives whole" },
-  { id: "takesIdentity", ability: "takesIdentity", quality: "harnessability", weight: 2, feels: "It becomes who my files say it is: a name, a voice, rules of its own" },
-  { id: "followsStanding", ability: "followsStanding", quality: "harnessability", weight: 2, feels: "It follows my standing instructions without being reminded" },
-  { id: "steersMidTask", ability: "steersMidTask", quality: "harnessability", weight: 2, feels: "I can redirect it while it is working, without stopping it" },
-  { id: "extendsSystemPrompt", ability: "extendsSystemPrompt", quality: "harnessability", weight: 1, feels: "I can add to or replace the instructions it starts from, beyond a file in my folder" },
+  { id: "moments", quality: "moldability", weight: 2, feels: "My rules run at every moment, not only some" },
+  { id: "identity", quality: "moldability", weight: 2, feels: "My chief of agents arrives whole" },
+  { id: "takesIdentity", ability: "takesIdentity", quality: "moldability", weight: 2, feels: "It becomes who my files say it is: a name, a voice, rules of its own" },
+  { id: "followsStanding", ability: "followsStanding", quality: "moldability", weight: 2, feels: "It follows my standing instructions without being reminded" },
+  { id: "steersMidTask", ability: "steersMidTask", quality: "steerability", weight: 2, feels: "I can redirect it while it is working, without stopping it" },
+  { id: "extendsSystemPrompt", ability: "extendsSystemPrompt", quality: "moldability", weight: 1, feels: "I can add to or replace the instructions it starts from, beyond a file in my folder" },
 ];
 
 /** The answer an ability really supports: a yes with no date, version or evidence is unmeasured. */
@@ -72,7 +74,7 @@ function scoreRow(row, profile) {
 
 /**
  * A profile's scorecard. It starts with the pass line: whether the profile is a superharness, and
- * which boxes of the bar it is missing. `qualities` is a subtotal for each of the two qualities. `unmeasured` lists the rows nobody has measured, apart
+ * which boxes of the bar it is missing. `qualities` is a subtotal for each of the three qualities. `unmeasured` lists the rows nobody has measured, apart
  * from any no.
  */
 export function scoreHarness(profile) {

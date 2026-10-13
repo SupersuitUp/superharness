@@ -149,7 +149,7 @@ exit 0
 
 ### `superharness rubric`
 
-Whether each harness is a superharness, then the scorecard for each, with a subtotal for its two qualities (reach, and harnessability: how far your own context can reshape it) and the date, the version and the evidence behind every row. With `--needs`, the last line is the recommendation. It exits 1 when you named a need and no superharness meets it.
+Whether each harness is a superharness, then the scorecard for each, with a subtotal for its three qualities (reach; moldability, how far your own context reshapes it before you say anything; and steerability, how well you can turn it while it works) and the date, the version and the evidence behind every row. With `--needs`, the last line is the recommendation. It exits 1 when you named a need and no superharness meets it.
 
 ```
 $ superharness rubric --needs liveSessionRegistry
@@ -157,14 +157,14 @@ Claude Code: superharness, 11 of 11 (standard 2.0.0)
 Codex: superharness, 11 of 11 (standard 2.0.0)
 
 Claude Code  20.6 of 23
-  harnessability 8.6 of 11, reach 12 of 12
+  moldability 6.6 of 9, steerability 2 of 2, reach 12 of 12
     3 of 3  I can reach it by remote control from my phone: yes, measured 2026-10-13 on 2.1.296 (Claude Code)
             `claude --help` on this version lists `--remote-control`, and the com.getfreedom.remotecontrol LaunchAgent that runs `claude remote-control` was loaded on the measuring Mac.
     2 of 2  It can work while I am not watching: yes, measured 2026-10-13 on 2.1.296 (Claude Code)
   ...
 
 Codex  16.7 of 23
-  harnessability 6.7 of 11, reach 10 of 12
+  moldability 6.7 of 9, steerability 0 of 2, reach 10 of 12
     3 of 3  I can reach it by remote control from my phone: yes, measured 2026-10-13 on codex-cli 0.162.1
   ...
     0 of 2  A question waits for me as long as it takes: no, measured 2026-10-13 on codex-cli 0.162.1
@@ -250,7 +250,7 @@ recommend({ needs: ["liveSessionRegistry"] }, [h, codex]).because;
 | `register(id, factory)` | Makes an outside adapter resolvable by id |
 | `harnessId(opts)`, `harness(opts)`, `isSwapped(opts)`, `installed(profile, home)` | The resolver. `opts` is `{ env, home, config, envVar, configFile }`; `envVar` defaults to `FREEDOM_HARNESS` and `configFile` to `(home) => home/.freedom/config.json`, so another product can use its own names |
 | `checkStatic(profile)`, `checkLive(profile, opts)`, `summarize(results)` | The check. `summarize` returns `pass` for the clauses and `superharness` and `bar` for the boxes |
-| `HARNESS_ROWS`, `QUALITIES`, `HARNESSABILITY`, `scoreHarness(profile)` | The harness scorecard. Every row has a `quality`, and the card starts with `superharness` and `bar` and carries a subtotal per quality in `qualities` |
+| `HARNESS_ROWS`, `QUALITIES`, `MOLDABILITY`, `STEERABILITY`, `scoreHarness(profile)` | The harness scorecard. Every row has a `quality`, and the card starts with `superharness` and `bar` and carries a subtotal per quality in `qualities` |
 | `MODEL_ROWS`, `MODEL_RESULTS`, `scoreModel(results)` | The model scorecard. `MODEL_RESULTS` is empty: a model scorecard is filled only by a recorded run |
 | `recommend({ needs }, profiles)` | `{ pick, because, ranked }`. Only a superharness is ever picked |
 | `remoteControlWarning(profile, { profiles })` | Three lines, or `null` when remote control is measured. `phoneLineWarning` is still exported and is the same function |

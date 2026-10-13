@@ -18,10 +18,10 @@ A "yes" that arrives without a date, a version and an evidence sentence is treat
 
 ## The harness scorecard
 
-Each row is something an operator feels. The maximum is 23. Every row belongs to one of two qualities, and the scorecard prints a subtotal for each.
+Each row is something an operator feels. The maximum is 23. Every row belongs to one of three qualities, and the scorecard prints a subtotal for each.
 
 - **Reach** (12 points) is where and how a harness can work for you: from your phone, while you are away, through cards, helpers and connected tools.
-- **Harnessability** (11 points) is defined in its own section below.
+- **Moldability** (9 points) and **steerability** (2 points) are defined in their own section below.
 
 Some reach rows repeat a box of the bar, so every superharness scores them in full: remote control, working while you are not watching, the question card, helpers and connected tools. They stay on the card so that a harness which is not a superharness can be read on the same page. The rows that tell two superharnesses apart are the ones the bar does not settle.
 
@@ -41,9 +41,13 @@ Some reach rows repeat a box of the bar, so every superharness scores them in fu
 - **Background sessions, the question card and a question that waits are 2 each.** Work that continues while you are away, a question you can answer with one tap, and a question that is still there when you get to it. A card that answers itself on a timer has made a decision that was yours.
 - **Helpers, connected tools and the list of running sessions are 1 each.** They matter, and a session is still useful without any one of them.
 
-## Harnessability
+## Moldability and steerability
 
-Harnessability is how far your own context can reshape a harness: what it calls itself, how it behaves, what it does unprompted, and whether you can turn it while it works.
+Moldability is how far your own context reshapes a harness before you say anything: what it calls itself, how it behaves, and what it does unprompted.
+
+Steerability is how well you can turn a harness while it is working, without stopping it.
+
+Every row below is a moldability row except `steersMidTask`, which is the steerability row.
 
 Box 2 of the bar, instructions that load whole, is the floor. These rows measure how far above the floor a harness goes.
 
@@ -103,7 +107,8 @@ These are the answers in the adapter files on the day this version was written. 
 | `followsStanding` | not measured | no, measured 2026-09-23 on 0.156.0, not rerun on 0.162.1 |
 | `steersMidTask` | yes, measured 2026-10-13 on 2.1.296 | no, 2026-10-13 on codex-cli 0.162.1, on the operator's report, no timed test |
 | `extendsSystemPrompt` | yes, read from the help text of 2.1.296 on 2026-10-13 | yes, read from the help and program text of codex-cli 0.162.1 on 2026-10-13 |
-| **Harnessability** | **8.6 of 11** | **6.7 of 11** |
+| **Moldability** | **6.6 of 9** | **6.7 of 9** |
+| **Steerability** | **2 of 2** | **0 of 2** |
 | **Total** | **20.6 of 23** | **16.7 of 23** |
 
 How to read the differences:
