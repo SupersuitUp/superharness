@@ -184,9 +184,19 @@ test("the totals RUBRIC.md states are the totals the code computes", async () =>
 // counts literals that look like Freedom's own version, one reads `label =` as a launchd label.
 // Both fired on the first vendored copy (2026-10-13), so the source stays clear of both shapes.
 test("no source file carries a consumer's version number or a `label =` assignment", () => {
-  for (const f of ["src/bin-resolver.mjs", "src/registry.mjs", "src/rubric.mjs", "src/conformance.mjs", "src/define.mjs", "src/contract.mjs", "src/adapters/claude-code.mjs", "src/adapters/codex.mjs", "bin/superharness.mjs"]) {
+  for (const f of ["src/bin-resolver.mjs", "src/registry.mjs", "src/rubric.mjs", "src/conformance.mjs", "src/define.mjs", "src/contract.mjs", "src/bar.mjs", "src/adapters/claude-code.mjs", "src/adapters/codex.mjs", "bin/superharness.mjs"]) {
     const s = read(f);
     assert.ok(!/\bv6\.\d+\.\d+/.test(s), `${f} names a Freedom version`);
     assert.ok(!/\blabel\s*=\s*/i.test(s), `${f} has a label = assignment`);
+    assert.ok(!/toISOString/.test(s), `${f} derives a day from a UTC timestamp`);
   }
+});
+
+test("a measured date has to be a real calendar day", async () => {
+  const { evidencedYes } = await import("../src/bar.mjs");
+  const y = (measured) => ({ answer: "yes", measured, version: "1", evidence: "seen" });
+  assert.equal(evidencedYes(y("2026-10-13")), true);
+  assert.equal(evidencedYes(y("2024-02-29")), true);
+  for (const bad of ["2026-02-30", "2026-13-01", "2026-00-10", "2025-02-29", "2026-1-3", "tomorrow"])
+    assert.equal(evidencedYes(y(bad)), false, bad);
 });

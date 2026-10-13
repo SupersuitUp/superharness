@@ -34,8 +34,10 @@ const HOME = "/home/probe";
 const filled = (s) => typeof s === "string" && s.trim().length > 0;
 const isDate = (s) => {
   if (typeof s !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
-  const d = new Date(`${s}T00:00:00Z`);
-  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
+  // A real calendar day, checked on its parts: no clock, no time zone, nothing to convert.
+  const [y, m, d] = s.split("-").map(Number);
+  const days = [31, (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0 ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return m >= 1 && m <= 12 && d >= 1 && d <= days[m - 1];
 };
 
 /** True only for a yes that carries a real date, a version and an evidence sentence. */
