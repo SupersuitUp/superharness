@@ -11,8 +11,8 @@
 // Never a versioned path under ~/.local/share/claude/versions: that moves on every update.
 // ~/.local/bin/claude is the symlink the installer keeps current.
 //
-// A LEFTOVER COPY IS NOT A FALLBACK, IT IS THE ONE THAT RUNS (freedom#242,
-// @brayantenesaca10-boop). Until 2026-09-23 this returned the first path that EXISTED, with no
+// A LEFTOVER COPY IS NOT A FALLBACK, IT IS THE ONE THAT RUNS (freedom#242).
+// Until 2026-09-23 this returned the first path that EXISTED, with no
 // nvm location in the list and no comparison of what each copy held. On a Mac carrying a current
 // nvm install (2.1.280) and an npm global left over from March at /usr/local/bin/claude (2.1.88),
 // the March one won: the setup check reported "Claude Code 2.1.88 is installed" every session and

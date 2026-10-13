@@ -8,12 +8,15 @@
   },
   "exports": {
     ".": "./src/index.mjs",
+    "./bin-resolver": "./src/bin-resolver.mjs",
     "./package.json": "./package.json"
   },
   "files": [
     "bin/",
     "src/",
     "README.md",
+    "CONTRACT.md",
+    "RUBRIC.md",
     "CHANGELOG.md",
     "LICENSE"
   ],

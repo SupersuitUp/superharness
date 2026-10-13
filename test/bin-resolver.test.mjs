@@ -38,7 +38,7 @@ test("the launchd PATH additions are the two user-level bin dirs a candidate can
 // origin call sites (spin-up.mjs and freedom-board.mjs). It pins the origin's callers, not the
 // resolver, so it stays in the origin.
 
-// A LEFTOVER COPY IS NOT A FALLBACK, IT IS THE ONE THAT RUNS (freedom#242, @brayantenesaca10-boop).
+// A LEFTOVER COPY IS NOT A FALLBACK, IT IS THE ONE THAT RUNS (freedom#242).
 //
 // On a Mac with a current nvm install (2.1.280) and an npm global left over from March at
 // /usr/local/bin/claude (2.1.88), the resolver returned the March one: the list has no nvm
