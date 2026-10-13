@@ -4,3 +4,4 @@ export * from "./define.mjs";
 export * from "./registry.mjs";
 export { slugCwd } from "./adapters/claude-code.mjs";
 export { isCodexTurn } from "./adapters/codex.mjs";
+export * from "./conformance.mjs";
