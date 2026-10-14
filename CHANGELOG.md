@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.3.0 (2026-10-13)
+
+Standard version 2.1.0. Additions only: nothing an existing importer reads has changed, and both shipped harnesses are still superharnesses, 11 of 11, with the same scorecard (Claude Code 20.6 of 23, Codex 16.7 of 23).
+
+Added:
+
+- A new entry point, `@supersuit/superharness/places`. It exports `PLACES`, `claudeCodePlaces(env)` and `codexPlaces(env)`: where each shipped harness keeps things, and nothing else. Import it from a program that must not load anything able to start another program, such as a health check that refuses those imports. The main entry point and the `bin-resolver` entry point are unchanged, and the main entry point now exports the same three names.
+- Six optional places, answered by both shipped adapters:
+  - `projectDir(root)`: the settings folder inside a project. `<root>/.claude` on Claude Code, `<root>/.codex` on Codex.
+  - `userInstructionsFile(home)`: the instruction file read at the start of every session. `<configDir>/CLAUDE.md` on Claude Code, `<configDir>/AGENTS.md` on Codex. On Codex it is the same function as `deliverIdentity.file`.
+  - `isInsidePluginFolder(path, home)`: true for a path inside a plugin copy. It answers true for every path the test Freedom used before answered true for (a `.claude/plugins/` or `plugins/cache/` folder, with the platform separator), and also for anything inside the harness's own `pluginCacheDir(home)` or `marketplacesDir(home)`.
+  - `credentialsFile(home)`: `<configDir>/.credentials.json` on Claude Code, null on Codex.
+  - `bridgeSpawnDir(home)`: `<configDir>/bridge-spawn` on Claude Code, null on Codex.
+  - `bridgePointerFile(home, cwd)`: `<transcriptsRoot>/<cwd slug>/bridge-pointer.json` on Claude Code, null on Codex and null when an argument is missing.
+- `superharness path` answers the five new places that are paths. `projectDir` takes `--root`, and `bridgePointerFile` takes `--cwd`.
+- The check has a new kind of clause, a predicate: a place that answers true or false about a path, must return a boolean, and must not throw.
+
+Changed:
+
+- `check` prints six more clause rows, so its count line reads `optional 49 of 49` for both shipped harnesses where it read `43 of 43`.
+- The full adapters take every place from the places module, so there is one copy of each path. Every place 0.2.0 answered returns the same string as 0.2.0 for every environment, home, working directory and session id in a recorded matrix, and a test compares against that recording.
+
+What was read, and from where:
+
+- Codex's `projectDir` was read from the program text of codex-cli 0.162.1 on 2026-10-13, which describes a project `.codex/config.toml` as the settings for a trusted repository.
+- The three Claude Code files are the paths Freedom builds by hand today, under `configDir` and `transcriptsRoot` here so they follow `CLAUDE_CONFIG_DIR` the way every other place does.
+
 ## 0.2.0
 
 The package is renamed, and its promise changes. It was `@supersuit/harness-harnesser`, a contract any harness could pass. It is now `@supersuit/superharness`, the superharness standard: a harness is a superharness when it checks eleven stated boxes.

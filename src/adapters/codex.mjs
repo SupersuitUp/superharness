@@ -9,9 +9,13 @@
 // the operator's firsthand report of 2026-10-13 and say so in the sentence. One, refuseTool, was
 // measured by this package with a single live run. Where nothing was observed, the answer is
 // "unmeasured", which scores nothing and is never shown as a no.
-import { join } from "node:path";
+//
+// Every place comes from src/places.mjs, the module a host can import on its own as
+// @supersuit/superharness/places, and the identity file below is that module's
+// userInstructionsFile, the same function.
 import { cardReader } from "../card.mjs";
 import { defineHarness } from "../define.mjs";
+import { codexPlaces } from "../places.mjs";
 
 /** An env var that is set but blank is unset, which is what every call site's `.trim()` means. */
 const envDir = (env, name) => {
@@ -34,34 +38,17 @@ const TODAY = "2026-10-13";
 const VERSION = "codex-cli 0.162.1";
 
 export default (env = {}) => {
-  const configDir = (home) => envDir(env, "CODEX_HOME") || join(home, ".codex");
+  const places = codexPlaces(env);
   return defineHarness({
     id: "codex",
     label: "Codex",
     bin: () => envDir(env, "FREEDOM_CODEX_BIN") || "codex",
-    configDir,
-    settingsFile: (home) => join(configDir(home), "config.toml"),
-    pluginCacheDir: (home) => join(configDir(home), "plugins", "cache"),
-    marketplacesDir: (home) => join(configDir(home), "plugins", "marketplaces"),
-    skillsDir: (home) => join(configDir(home), "skills"),
-    // Claude Code's `sessions/` is a registry of LIVE sessions (one pid record each). Codex's
-    // `sessions/` is the same word for its chat HISTORY, so returning it here would point a
-    // roster at rollouts. No live registry is known on Codex; null makes a caller say so instead
-    // of reading the wrong thing.
-    sessionsDir: () => null,
-    transcriptsRoot: (home) => join(configDir(home), "sessions"),
-    // ~/.codex/sessions/YYYY/MM/DD/rollout-<timestamp>-<uuid>.jsonl. The working directory is
-    // inside the file's first line (`session_meta`) rather than in its path, so a rollout is
-    // searched for and never constructed. Null is the honest answer.
-    transcriptPath: () => null,
+    // Honours CODEX_HOME. sessionsDir and transcriptPath are null on Codex; places.mjs says why.
+    ...places,
     // The typed turn is the event_msg, NOT the response_item with role "user": Codex writes
     // those for context nobody typed (its injected AGENTS.md, <environment_context>,
     // <turn_aborted>). Measured on nine real rollouts.
     isTurn: isCodexTurn,
-    // Deliberately the same path as Claude Code's. A worktree is a git worktree; the directory
-    // is only a convention about where they are parked. Two homes would mean a worktree made
-    // under one harness is invisible to the other on the same repo, for no gain.
-    worktreesDir: (root) => join(root, ".claude", "worktrees"),
     // Measured in the 0.156.0 binary: it reads `.claude-plugin/plugin.json` alongside its own
     // manifest folder, and its hook environment table carries CLAUDE_PLUGIN_ROOT alongside
     // PLUGIN_ROOT. So one manifest and one variable serve both harnesses.
@@ -83,7 +70,7 @@ export default (env = {}) => {
     // By file, and maxChars is why: Codex 0.156 kept only the first and last ~5,000 characters of
     // a hook's context and dropped the middle (measured 2026-09-23), while $CODEX_HOME/AGENTS.md
     // was read whole at 136 KB.
-    deliverIdentity: { via: "file", file: (home) => join(configDir(home), "AGENTS.md"), maxChars: 5000 },
+    deliverIdentity: { via: "file", file: places.userInstructionsFile, maxChars: 5000 },
     startBackground: ({ prompt, extra = [] }) => ({ cmd: "codex", args: ["exec", "--json", ...extra, prompt] }),
     runPrompt: ({ prompt, extra = [] }) => ({ cmd: "codex", args: ["exec", ...extra, prompt] }),
     // Source: Freedom's reference file codex-question-cards.md. The async tool takes

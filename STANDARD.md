@@ -1,6 +1,6 @@
 # The superharness standard
 
-**Version 2.0.0**
+**Version 2.1.0**
 
 A superharness is a harness you can hand your whole computer and your whole context to, and still be the one in command.
 
@@ -100,7 +100,7 @@ Core means the adapter is malformed without it. Optional means it may be left ou
 
 ### Places
 
-Where the harness keeps things. Each one is a function of the home folder it is given. A place getter never reads the environment or looks up the real home itself, so a test, a background job and a live session all get the same answer. The check enforces this, and reports it as the row `purity`.
+Where the harness keeps things. Each one is a function of the folder it is given, usually the home folder. A place getter never reads the environment or looks up the real home itself, so a test, a background job and a live session all get the same answer. The check enforces this, and reports it as the row `purity`.
 
 - `places.configDir` (core): Where the harness keeps its own settings, given a home folder.
 - `places.skillsDir` (core): Where the harness looks for skills.
@@ -112,7 +112,43 @@ Where the harness keeps things. Each one is a function of the home folder it is 
 - `places.transcriptPath` (optional): The record for one session, when it can be computed. Returns null when it must be searched for.
 - `places.worktreesDir` (optional): Where working copies of a project are parked.
 
-`transcriptPath` is called with a home, a working directory and a session id. `worktreesDir` is called with a project folder.
+- `places.projectDir` (optional): The folder inside a project that holds the harness's settings for that project, given the project folder: .claude on Claude Code, .codex on Codex. Returns null when the harness keeps none.
+- `places.userInstructionsFile` (optional): The user-level instruction file the harness reads at the start of every session, given a home folder.
+- `places.isInsidePluginFolder` (optional): True when a path is inside a plugin copy the harness keeps, its plugin cache or its plugin catalog folder: (path, home) => boolean. Never throws.
+- `places.credentialsFile` (optional): The file the harness keeps its account credential in, given a home folder. Returns null when the standard names none for this harness.
+- `places.bridgeSpawnDir` (optional): The folder remote control writes one entry into per session it is hosting. Returns null when the standard names none for this harness.
+- `places.bridgePointerFile` (optional): The file remote control keeps for a project folder, naming the environment it will resume there, given a home and that folder. Returns null when the standard names none for this harness, or when an argument is missing.
+
+`transcriptPath` is called with a home, a working directory and a session id. `bridgePointerFile` is called with a home and a working directory. `worktreesDir` and `projectDir` are called with a project folder. `isInsidePluginFolder` is called with a path and a home.
+
+The last six were added in version 2.1.0. No box reads them, so a harness that leaves them out is exactly as much a superharness as before. What the two shipped adapters answer:
+
+| Place | Claude Code | Codex |
+| --- | --- | --- |
+| `projectDir(root)` | `<root>/.claude` | `<root>/.codex` |
+| `userInstructionsFile(home)` | `<configDir>/CLAUDE.md` | `<configDir>/AGENTS.md`, the same function as `deliverIdentity.file` |
+| `isInsidePluginFolder(path, home)` | see below | see below |
+| `credentialsFile(home)` | `<configDir>/.credentials.json` | null |
+| `bridgeSpawnDir(home)` | `<configDir>/bridge-spawn` | null |
+| `bridgePointerFile(home, cwd)` | `<transcriptsRoot>/<cwd slug>/bridge-pointer.json` | null |
+
+`<configDir>` follows `CLAUDE_CONFIG_DIR` on Claude Code and `CODEX_HOME` on Codex, as every other place does. Codex's `projectDir` was read from the program text of codex-cli 0.162.1 on 2026-10-13, which describes a project `.codex/config.toml` as the settings for a trusted repository. The three Claude Code files are null on Codex because this standard names no Codex counterpart for them; null tells a caller to say so instead of guessing a path.
+
+`isInsidePluginFolder(path, home)` is true in two cases on both shipped adapters. The first is any path that runs through a `.claude/plugins/` folder or a `plugins/cache/` folder, written with the platform's own separator, which is the test Freedom used before this clause existed, kept so a host moving onto it loses no answer it had. The second is any path inside the harness's own `pluginCacheDir(home)` or `marketplacesDir(home)`, the folder itself included, which reaches a Codex catalog folder and a moved Claude Code config folder that the first test does not. Without a home, only the first test answers. Anything that is not a non-empty string is false.
+
+### The places entry point
+
+```js
+import { PLACES, claudeCodePlaces, codexPlaces } from "@supersuit/superharness/places";
+
+const places = PLACES["codex"](process.env);
+places.skillsDir("/Users/you");             // "/Users/you/.codex/skills"
+places.isInsidePluginFolder("/Users/you/.codex/plugins/cache/x", "/Users/you");  // true
+```
+
+`@supersuit/superharness/places` holds the places of both shipped adapters and nothing else, so a host that must not load anything that runs programs can still read where things live. A health check that refuses any module able to start a program can import it, where the full adapters, which find the harness's program by running it with `--version`, cannot be imported there. Its whole import graph is one file and `node:path`, and a test fails if anything in that graph can start a program.
+
+The full adapters take their places from the same functions, so the two never disagree, and every place that version 2.0.0 named answers with the same string it did then.
 
 ### Actions
 
@@ -255,7 +291,7 @@ npx @supersuit/superharness check ./toy.mjs
 It prints one line per clause, `PASS`, `FAIL` or `SKIP`, and a line counting them. Then it prints one line per box, and it ends with one of two lines:
 
 ```
-SUPERHARNESS toy: 11 of 11 (standard 2.0.0)
+SUPERHARNESS toy: 11 of 11 (standard 2.1.0)
 NOT A SUPERHARNESS toy: 9 of 11, missing: remoteControl, questionCard
 ```
 
@@ -315,6 +351,6 @@ The standard has its own version number, separate from the package's.
 - **A new box, a box whose rule changes, a new core clause, or a clause whose meaning changes is a major version.** A harness that was a superharness may no longer be one.
 - **A fix to the wording that changes no meaning is a patch version.**
 
-Version 2.0.0 is the first with a bar. Version 1.0.0 asked six core clauses and called everything else optional.
+Version 2.1.0 adds six optional places and the places entry point. Version 2.0.0 is the first with a bar. Version 1.0.0 asked six core clauses and called everything else optional.
 
 Before any release, the adapters this package ships must check all eleven boxes. The test suite runs the check.

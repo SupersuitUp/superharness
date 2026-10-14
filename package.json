@@ -1,6 +1,6 @@
 {
   "name": "@supersuit/superharness",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The superharness standard: the eleven boxes a harness must check, the adapters for the two that check them today, the check, and a rubric for comparing superharnesses.",
   "type": "module",
   "bin": {
@@ -9,6 +9,7 @@
   "exports": {
     ".": "./src/index.mjs",
     "./bin-resolver": "./src/bin-resolver.mjs",
+    "./places": "./src/places.mjs",
     "./package.json": "./package.json"
   },
   "files": [

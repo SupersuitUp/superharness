@@ -11,6 +11,9 @@ import {
   scoreHarness, standing, recommend, remoteControlWarning,
 } from "../src/index.mjs";
 
+/** The places that are paths. isInsidePluginFolder answers a question about a path and is not one. */
+const PATH_PLACES = CLAUSES.filter((c) => c.group === "places" && c.kind === "function").map((c) => c.key);
+
 const HELP = `superharness: the superharness standard, and the check for it.
 
 ${DEFINITION}
@@ -24,8 +27,9 @@ Usage:
       <home>/.freedom/config.json, then claude-code.
   superharness path <place> [--harness <id|file>] [--home <dir>]
       One path, and nothing else. Exit 1 when the harness has no such place.
-      Places: ${CLAUSES.filter((c) => c.group === "places").map((c) => c.key).join(", ")}.
-      transcriptPath also takes --cwd <dir> and --session <id>. worktreesDir takes --root <dir>.
+      Places: ${PATH_PLACES.join(", ")}.
+      transcriptPath also takes --cwd <dir> and --session <id>. bridgePointerFile takes --cwd <dir>.
+      worktreesDir and projectDir take --root <dir>.
   superharness can <ability> [--harness <id|file>]
       Prints yes, no or unmeasured. Exit 0 only for yes.
   superharness check <id|file> [--live] [--json]
@@ -108,13 +112,14 @@ async function main(argv) {
   }
 
   if (cmd === "path") {
-    const places = CLAUSES.filter((c) => c.group === "places").map((c) => c.key);
+    const places = PATH_PLACES;
     if (!arg) throw new Usage(`path needs a place: ${places.join(", ")}`);
     if (!places.includes(arg)) throw new Usage(`unknown place "${arg}". Places: ${places.join(", ")}`);
     const p = await resolved();
     if (typeof p[arg] !== "function") return 1;
     const args = arg === "transcriptPath" ? [home, flags.cwd || process.cwd(), flags.session || ""]
-      : arg === "worktreesDir" ? [flags.root || process.cwd()]
+      : arg === "bridgePointerFile" ? [home, flags.cwd || process.cwd()]
+      : arg === "worktreesDir" || arg === "projectDir" ? [flags.root || process.cwd()]
       : [home];
     const v = p[arg](...args);
     if (typeof v !== "string" || !v) return 1;

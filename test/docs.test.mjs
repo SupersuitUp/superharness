@@ -12,7 +12,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (f) => readFileSync(join(ROOT, f), "utf8");
 const PROSE = ["STANDARD.md", "RUBRIC.md", "README.md", "CHANGELOG.md"];
 const SOURCE = ["src/contract.mjs", "src/bar.mjs", "src/card.mjs", "src/define.mjs", "src/registry.mjs", "src/conformance.mjs", "src/rubric.mjs",
-  "src/bin-resolver.mjs", "src/adapters/claude-code.mjs", "src/adapters/codex.mjs", "src/index.mjs", "bin/superharness.mjs"];
+  "src/bin-resolver.mjs", "src/places.mjs", "src/adapters/claude-code.mjs", "src/adapters/codex.mjs", "src/index.mjs", "bin/superharness.mjs"];
 
 test("STANDARD.md is titled as the standard and carries the definition sentence", () => {
   const doc = read("STANDARD.md");
@@ -148,7 +148,7 @@ test("the adapter STANDARD.md teaches is a superharness when it is saved and che
   assert.equal(isSuperharness(p), true);
   const r = cli(["check", file]);
   assert.equal(r.status, 0);
-  assert.equal(r.stdout.trim().split("\n").at(-1), "SUPERHARNESS toy: 11 of 11 (standard 2.0.0)");
+  assert.equal(r.stdout.trim().split("\n").at(-1), "SUPERHARNESS toy: 11 of 11 (standard 2.1.0)");
 });
 test("the starter adapter in the README prints exactly the lines the README shows", () => {
   const file = join(exampleDir, "small.mjs");
@@ -184,7 +184,7 @@ test("the totals RUBRIC.md states are the totals the code computes", async () =>
 // counts literals that look like Freedom's own version, one reads `label =` as a launchd label.
 // Both fired on the first vendored copy (2026-10-13), so the source stays clear of both shapes.
 test("no source file carries a consumer's version number or a `label =` assignment", () => {
-  for (const f of ["src/bin-resolver.mjs", "src/registry.mjs", "src/rubric.mjs", "src/conformance.mjs", "src/define.mjs", "src/contract.mjs", "src/bar.mjs", "src/adapters/claude-code.mjs", "src/adapters/codex.mjs", "bin/superharness.mjs"]) {
+  for (const f of ["src/bin-resolver.mjs", "src/registry.mjs", "src/rubric.mjs", "src/conformance.mjs", "src/define.mjs", "src/contract.mjs", "src/bar.mjs", "src/places.mjs", "src/adapters/claude-code.mjs", "src/adapters/codex.mjs", "bin/superharness.mjs"]) {
     const s = read(f);
     assert.ok(!/\bv6\.\d+\.\d+/.test(s), `${f} names a Freedom version`);
     assert.ok(!/\blabel\s*=\s*/i.test(s), `${f} has a label = assignment`);
@@ -199,4 +199,25 @@ test("a measured date has to be a real calendar day", async () => {
   assert.equal(evidencedYes(y("2024-02-29")), true);
   for (const bad of ["2026-02-30", "2026-13-01", "2026-00-10", "2025-02-29", "2026-1-3", "tomorrow"])
     assert.equal(evidencedYes(y(bad)), false, bad);
+});
+
+test("every source file is under the source guards, so a new file cannot slip past them", async () => {
+  const { readdirSync } = await import("node:fs");
+  const walk = (d) => readdirSync(join(ROOT, d), { withFileTypes: true })
+    .flatMap((e) => (e.isDirectory() ? walk(`${d}/${e.name}`) : e.name.endsWith(".mjs") ? [`${d}/${e.name}`] : []));
+  for (const f of [...walk("src"), ...walk("bin")]) assert.ok(SOURCE.includes(f), `${f} is not in SOURCE`);
+});
+test("STANDARD.md and the README name the places entry point and why it exists", () => {
+  const std = read("STANDARD.md"), readme = read("README.md");
+  assert.ok(std.includes("@supersuit/superharness/places"));
+  assert.match(std, /runs programs/);
+  assert.ok(readme.includes('from "@supersuit/superharness/places"'));
+  assert.match(read("CHANGELOG.md"), /^## 0\.3\.0 \(2026-10-13\)$/m);
+});
+test("the scorecard totals are what 0.2.0 scored: the new places score nothing", async () => {
+  const { scoreHarness } = await import("../src/rubric.mjs");
+  const { PROFILES } = await import("../src/registry.mjs");
+  const cc = scoreHarness(PROFILES["claude-code"]), cx = scoreHarness(PROFILES.codex);
+  assert.deepEqual([cc.total, cc.max, cc.bar.ok], [20.6, 23, 11]);
+  assert.deepEqual([cx.total, cx.max, cx.bar.ok], [16.7, 23, 11]);
 });

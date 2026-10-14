@@ -27,7 +27,25 @@ const pass = (why) => ({ ok: true, why });
 const fail = (why) => ({ ok: false, why });
 
 /** The arguments a place getter is called with. */
-const placeArgs = (key, home) => (key === "transcriptPath" ? [home, "/w", "sid"] : [home]);
+const placeArgs = (key, home) =>
+  key === "transcriptPath" ? [home, "/w", "sid"]
+    : key === "bridgePointerFile" ? [home, "/w"]
+      : key === "isInsidePluginFolder" ? ["/w", home]
+        : key === "projectDir" ? ["/w"]
+        : [home];
+
+/** A place that answers a question about a path: it must return a boolean and never throw. */
+function checkPredicate(clause, v, home) {
+  if (typeof v !== "function") return fail(`must be a function, got ${v === null ? "null" : typeof v}`);
+  const answers = [];
+  for (const args of [placeArgs(clause.key, home), [undefined, home]]) {
+    let out;
+    try { out = v(...args); } catch (e) { return fail(`threw when called: ${e.message}`); }
+    if (typeof out !== "boolean") return fail(`must return true or false, got ${out === null ? "null" : typeof out}`);
+    answers.push(out);
+  }
+  return pass(`answers ${answers[0]} for /w`);
+}
 
 function checkFunction(clause, v, home) {
   if (typeof v !== "function") return fail(`must be a function, got ${v === null ? "null" : typeof v}`);
@@ -84,6 +102,7 @@ function checkClause(profile, clause, home) {
   const absent = v === undefined || (v === null && clause.kind !== "nullable-function" && clause.kind !== "string");
   if (absent) return clause.level === "core" ? fail("missing, and the core requires it") : pass("not provided");
   if (clause.kind === "function") return checkFunction(clause, v, home);
+  if (clause.kind === "predicate") return checkPredicate(clause, v, home);
   if (clause.kind === "nullable-function") return checkNullableFunction(v);
   if (clause.kind === "string") return checkString(clause, v);
   if (clause.group === "abilities") return checkAbility(v);

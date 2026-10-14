@@ -8,19 +8,15 @@
 //
 // No getter reads process.env or the real home. The environment is the factory's argument and the
 // home is each getter's argument, so a test, a probe and a hook under launchd get one answer.
-import { join } from "node:path";
+//
+// Every place (configDir, transcriptPath, and the rest) comes from src/places.mjs, the module a host
+// can import on its own as @supersuit/superharness/places. This file adds what places cannot hold.
 import { claudeBin } from "../bin-resolver.mjs";
 import { cardReader } from "../card.mjs";
 import { defineHarness } from "../define.mjs";
+import { claudeCodePlaces, slugCwd } from "../places.mjs";
 
-/** An env var that is set but blank is unset, which is what every call site's `.trim()` means. */
-const envDir = (env, name) => {
-  const v = env?.[name];
-  return typeof v === "string" && v.trim() ? v.trim() : null;
-};
-
-/** Claude Code's project-directory slug: every non-alphanumeric byte becomes a dash. */
-export const slugCwd = (cwd) => String(cwd || "").replace(/[^a-zA-Z0-9]/g, "-");
+export { slugCwd };
 
 // What every "yes" below was measured on: `claude --version` on the maintainer's Mac that day.
 const MEASURED = "2026-10-13";
@@ -28,28 +24,13 @@ const VERSION = "2.1.296 (Claude Code)";
 const yes = (evidence) => ({ answer: "yes", measured: MEASURED, version: VERSION, evidence });
 
 export default (env = {}) => {
-  // Honours CLAUDE_CONFIG_DIR the way Claude Code itself does; every getter below derives from it.
-  const configDir = (home) => envDir(env, "CLAUDE_CONFIG_DIR") || join(home, ".claude");
   return defineHarness({
     id: "claude-code",
     label: "Claude Code",
     bin: (opts = {}) => claudeBin({ env, ...opts }),
-    configDir,
-    settingsFile: (home) => join(configDir(home), "settings.json"),
-    pluginCacheDir: (home) => join(configDir(home), "plugins", "cache"),
-    marketplacesDir: (home) => join(configDir(home), "plugins", "marketplaces"),
-    skillsDir: (home) => join(configDir(home), "skills"),
-    sessionsDir: (home) => join(configDir(home), "sessions"),
-    transcriptsRoot: (home) => join(configDir(home), "projects"),
-    // ~/.claude/projects/<cwd slug>/<sessionId>.jsonl. Null on a missing argument.
-    transcriptPath: (home, cwd, sessionId) =>
-      home && cwd && sessionId
-        ? join(configDir(home), "projects", slugCwd(cwd), `${sessionId}.jsonl`)
-        : null,
+    // Honours CLAUDE_CONFIG_DIR the way Claude Code itself does; every place derives from it.
+    ...claudeCodePlaces(env),
     isTurn: (o) => !!o && (o.type === "user" || o.type === "assistant"),
-    // Claude Code's own worktree home. The Codex adapter returns the same path on purpose; see
-    // the note there.
-    worktreesDir: (root) => join(root, ".claude", "worktrees"),
     pluginManifestDir: ".claude-plugin",
     pluginRootEnv: "CLAUDE_PLUGIN_ROOT",
     // The origin's list, in the origin's order. Passed explicitly so the order is byte-identical

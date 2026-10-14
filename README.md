@@ -76,7 +76,7 @@ $ superharness path sessionsDir --harness codex; echo "exit $?"
 exit 1
 ```
 
-Places: `configDir`, `skillsDir`, `transcriptsRoot`, `settingsFile`, `pluginCacheDir`, `marketplacesDir`, `sessionsDir`, `transcriptPath`, `worktreesDir`. Without `--harness` it uses the one `which` reports. Without `--home` it uses your home folder. `worktreesDir` takes `--root <project folder>`.
+Places: `configDir`, `skillsDir`, `transcriptsRoot`, `settingsFile`, `pluginCacheDir`, `marketplacesDir`, `sessionsDir`, `transcriptPath`, `worktreesDir`, `projectDir`, `userInstructionsFile`, `credentialsFile`, `bridgeSpawnDir`, `bridgePointerFile`. Without `--harness` it uses the one `which` reports. Without `--home` it uses your home folder. `worktreesDir` and `projectDir` take `--root <project folder>`, and `bridgePointerFile` takes `--cwd <dir>`.
 
 ### `superharness can`
 
@@ -98,7 +98,7 @@ One line per clause of the standard and a line counting them, then one line per 
 ```
 $ superharness check codex | tail -14
 PASS  purity                         core      no place getter reads process.env
-clauses: core 7 of 7, optional 43 of 43
+clauses: core 7 of 7, optional 49 of 49
 PASS  computer       capability  It works on your computer: it reads and writes your files and runs programs in folders you choose.
 PASS  instructions   capability  It loads your instructions whole, every session.
 PASS  skills         capability  It reads skills from a folder, in the open skill format.
@@ -110,7 +110,7 @@ PASS  permission     safety      It asks permission, and can be restricted to a 
 PASS  record         safety      It keeps a full record of every session on your own disk, in a form you can read and take with you.
 PASS  remoteControl  safety      You can reach it from your phone: start a session, check on one, answer it.
 PASS  questionCard   safety      It can ask you a question as a card with choices.
-SUPERHARNESS codex: 11 of 11 (standard 2.0.0)
+SUPERHARNESS codex: 11 of 11 (standard 2.1.0)
 ```
 
 A harness that misses a box is told which, and why:
@@ -153,8 +153,8 @@ Whether each harness is a superharness, then the scorecard for each, with a subt
 
 ```
 $ superharness rubric --needs liveSessionRegistry
-Claude Code: strongly recommended. Superharness, 11 of 11 (standard 2.0.0). Not measured yet: followsStanding
-Codex: supported. Superharness, 11 of 11 (standard 2.0.0). Measured shortfalls: cardWaits, followsStanding, steersMidTask
+Claude Code: strongly recommended. Superharness, 11 of 11 (standard 2.1.0). Not measured yet: followsStanding
+Codex: supported. Superharness, 11 of 11 (standard 2.1.0). Measured shortfalls: cardWaits, followsStanding, steersMidTask
 
 Claude Code  20.6 of 23
   moldability 6.6 of 9, steerability 2 of 2, reach 12 of 12
@@ -198,7 +198,7 @@ Prints every command with its options. `superharness --version` prints the packa
 
 ```
 $ superharness --version
-0.2.0 (standard 2.0.0)
+0.3.0 (standard 2.1.0)
 ```
 
 ## The library
@@ -224,7 +224,7 @@ h.abilities.remoteControl;  // { answer, measured, version, evidence }
 isSuperharness(h);          // true
 checkBar(h);                // 11 rows: { id, half, ok, why }
 summarize(checkStatic(h));
-// { pass: true, core: { ok: 7, total: 7 }, optional: { ok: 43, total: 43 }, failed: [],
+// { pass: true, core: { ok: 7, total: 7 }, optional: { ok: 49, total: 49 }, failed: [],
 //   superharness: true, bar: { ok: 11, total: 11, missing: [] } }
 
 // Is this tool call a question card, and what does it ask?
@@ -256,12 +256,29 @@ recommend({ needs: ["liveSessionRegistry"] }, [h, codex]).because;
 | `recommend({ needs }, profiles)` | `{ pick, because, ranked }`. Only a superharness is ever picked |
 | `remoteControlWarning(profile, { profiles })` | Three lines, or `null` when remote control is measured. `phoneLineWarning` is still exported and is the same function |
 | `slugCwd(cwd)`, `isCodexTurn(line)` | Two helpers the adapters use, exported by name |
+| `PLACES`, `claudeCodePlaces(env)`, `codexPlaces(env)` | The places of each shipped harness, also importable alone from `@supersuit/superharness/places` |
 
 The program finder the Claude Code adapter uses is a separate entry point:
 
 ```js
 import { claudeBin, claudeInstalls } from "@supersuit/superharness/bin-resolver";
 ```
+
+So are the places, for a host that must not load anything that runs programs. Its whole import graph is one file and `node:path`, and the full adapters take their places from the same functions:
+
+```js
+import { PLACES, claudeCodePlaces, codexPlaces } from "@supersuit/superharness/places";
+
+const cc = claudeCodePlaces(process.env);
+cc.settingsFile("/Users/you");                     // "/Users/you/.claude/settings.json"
+cc.userInstructionsFile("/Users/you");             // "/Users/you/.claude/CLAUDE.md"
+cc.bridgePointerFile("/Users/you", "/a/b");        // "/Users/you/.claude/projects/-a-b/bridge-pointer.json"
+PLACES.codex({}).projectDir("/repo");              // "/repo/.codex"
+PLACES.codex({}).credentialsFile("/Users/you");    // null: no Codex counterpart is named
+cc.isInsidePluginFolder("/Users/you/.claude/plugins/cache/x/1.0.0", "/Users/you");  // true
+```
+
+`PLACES[id](env)` returns, for each shipped harness, `configDir`, `settingsFile`, `pluginCacheDir`, `marketplacesDir`, `skillsDir`, `sessionsDir`, `transcriptsRoot`, `transcriptPath`, `worktreesDir`, `projectDir`, `userInstructionsFile`, `isInsidePluginFolder`, `credentialsFile`, `bridgeSpawnDir` and `bridgePointerFile`. [STANDARD.md](./STANDARD.md#places) says what each one answers.
 
 ## Add your harness
 
@@ -298,7 +315,7 @@ Both check all eleven boxes, and the scorecard still tells them apart: Claude Co
 
 ## Where this came from
 
-It was extracted from the harness resolver inside Freedom, and was first published as a contract any harness could pass with six core clauses. Version 0.2.0 turned that into a bar. For Claude Code and Codex, every path and name that resolver returned is returned here unchanged, and the tests that pinned those values there were ported here before the adapters were written.
+It was extracted from the harness resolver inside Freedom, and was first published as a contract any harness could pass with six core clauses. Version 0.2.0 turned that into a bar. Version 0.3.0 added six places Freedom was still building by hand, and the places entry point. For Claude Code and Codex, every path and name that resolver returned is returned here unchanged, and the tests that pinned those values there were ported here before the adapters were written.
 
 ## License
 
