@@ -8,15 +8,15 @@ import { superToy } from "./fixtures.mjs";
 
 const CLAUDE_INPUT = { questions: [
   { question: "Which draft should go to the landlord?", header: "Draft", multiSelect: false,
-    options: [{ label: "Freeda sends the warm one", description: "Draft A" }, { label: "Gary edits it", description: "Draft B" }] },
+    options: [{ label: "Freeda sends the warm one", description: "Draft A" }, { label: "Sam edits it", description: "Draft B" }] },
   { question: "Send today?", header: "When", multiSelect: false, options: [{ label: "Yes" }, { label: "No" }] },
 ] };
 const CODEX_INPUT = { questions: [
-  { title: "Which draft should go to the landlord?", options: ["Freeda sends the warm one", "Gary edits it"] },
+  { title: "Which draft should go to the landlord?", options: ["Freeda sends the warm one", "Sam edits it"] },
   { title: "Send today?", options: ["Yes", "No"] },
 ] };
 const WANT = { questions: [
-  { text: "Which draft should go to the landlord?", options: ["Freeda sends the warm one", "Gary edits it"] },
+  { text: "Which draft should go to the landlord?", options: ["Freeda sends the warm one", "Sam edits it"] },
   { text: "Send today?", options: ["Yes", "No"] },
 ] };
 const MALFORMED = [undefined, null, 7, "x", [], {}, { questions: "no" }, { questions: [null, 3, {}, { options: "x" }] }];
