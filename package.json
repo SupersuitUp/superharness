@@ -31,5 +31,8 @@
     "type": "git",
     "url": "git+https://github.com/SupersuitUp/superharness.git"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {}
 }
