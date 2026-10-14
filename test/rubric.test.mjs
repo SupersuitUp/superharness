@@ -281,3 +281,31 @@ test("a model row scores only for a recorded run: runs, passes, evidence and a d
   assert.ok(!no.unmeasured.includes("saysWhatFailed"));
   assert.equal(no.max, 10);
 });
+
+// --- standing: what we say about a harness, read off the scorecard and never hand-set ---
+test("standing: a superharness with no measured shortfall is strongly recommended; one with any is supported", async () => {
+  const { standing, STANDINGS } = await import("../src/rubric.mjs");
+  assert.deepEqual(Object.keys(STANDINGS), ["recommended", "supported", "below"]);
+  const cc = standing(claudeCode({})), cx = standing(codex({}));
+  assert.equal(cc.id, "recommended");
+  assert.equal(cc.says, "strongly recommended");
+  assert.deepEqual(cc.shortfalls, []);
+  assert.deepEqual(cc.unmeasured, ["followsStanding"], "an unmeasured row is named, and is not a shortfall");
+  assert.equal(cx.id, "supported");
+  assert.equal(cx.says, "supported");
+  assert.deepEqual(cx.shortfalls.sort(), ["cardWaits", "followsStanding", "steersMidTask"]);
+});
+test("standing: a harness below the bar has no standing above it, whatever its scorecard says", async () => {
+  const { standing } = await import("../src/rubric.mjs");
+  const s = standing(noRemote());
+  assert.equal(s.id, "below");
+  assert.equal(s.says, "not a superharness");
+  assert.ok(s.missing.includes("remoteControl"));
+});
+test("standing: one measured no moves a recommended harness to supported", async () => {
+  const { standing } = await import("../src/rubric.mjs");
+  const p = claudeCode({});
+  const worse = { ...p, abilities: { ...p.abilities, followsStanding: { answer: "no", measured: "2026-10-14", version: "x", evidence: "ran the three-condition protocol" } } };
+  assert.equal(standing(worse).id, "supported");
+  assert.deepEqual(standing(worse).shortfalls, ["followsStanding"]);
+});

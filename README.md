@@ -153,8 +153,8 @@ Whether each harness is a superharness, then the scorecard for each, with a subt
 
 ```
 $ superharness rubric --needs liveSessionRegistry
-Claude Code: superharness, 11 of 11 (standard 2.0.0)
-Codex: superharness, 11 of 11 (standard 2.0.0)
+Claude Code: strongly recommended. Superharness, 11 of 11 (standard 2.0.0). Not measured yet: followsStanding
+Codex: supported. Superharness, 11 of 11 (standard 2.0.0). Measured shortfalls: cardWaits, followsStanding, steersMidTask
 
 Claude Code  20.6 of 23
   moldability 6.6 of 9, steerability 2 of 2, reach 12 of 12
@@ -250,6 +250,7 @@ recommend({ needs: ["liveSessionRegistry"] }, [h, codex]).because;
 | `register(id, factory)` | Makes an outside adapter resolvable by id |
 | `harnessId(opts)`, `harness(opts)`, `isSwapped(opts)`, `installed(profile, home)` | The resolver. `opts` is `{ env, home, config, envVar, configFile }`; `envVar` defaults to `FREEDOM_HARNESS` and `configFile` to `(home) => home/.freedom/config.json`, so another product can use its own names |
 | `checkStatic(profile)`, `checkLive(profile, opts)`, `summarize(results)` | The check. `summarize` returns `pass` for the clauses and `superharness` and `bar` for the boxes |
+| `standing(profile)`, `STANDINGS` | Where a harness stands: strongly recommended, supported, or not a superharness, read off the scorecard with the shortfalls named. |
 | `HARNESS_ROWS`, `QUALITIES`, `MOLDABILITY`, `STEERABILITY`, `scoreHarness(profile)` | The harness scorecard. Every row has a `quality`, and the card starts with `superharness` and `bar` and carries a subtotal per quality in `qualities` |
 | `MODEL_ROWS`, `MODEL_RESULTS`, `scoreModel(results)` | The model scorecard. `MODEL_RESULTS` is empty: a model scorecard is filled only by a recorded run |
 | `recommend({ needs }, profiles)` | `{ pick, because, ranked }`. Only a superharness is ever picked |

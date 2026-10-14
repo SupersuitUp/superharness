@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import {
   STANDARD_VERSION, CLAUSES, BAR, DEFINITION, HARNESSES, BUILTIN, MODEL_RESULTS,
   harnessId, isSwapped, loadAdapter, checkStatic, checkLive, summarize, checkBar,
-  scoreHarness, recommend, remoteControlWarning,
+  scoreHarness, standing, recommend, remoteControlWarning,
 } from "../src/index.mjs";
 
 const HELP = `superharness: the superharness standard, and the check for it.
@@ -183,7 +183,7 @@ async function main(argv) {
 
   if (cmd === "rubric") {
     const profiles = flags.harness ? [await profileOf(flags.harness)] : shipped();
-    const cards = profiles.map(scoreHarness);
+    const cards = profiles.map((p) => ({ ...scoreHarness(p), standing: standing(p) }));
     const needs = flags.needs ? flags.needs.split(",").map((s) => s.trim()).filter(Boolean) : null;
     const rec = needs ? recommend({ needs }, profiles) : null;
     if (flags.json) {
@@ -192,8 +192,9 @@ async function main(argv) {
       const shown = (r) => (r.answer === "unmeasured" ? "not measured" : r.answer);
       const when = (r) => (r.ability && r.answer !== "unmeasured" && r.measured ? `, measured ${r.measured} on ${r.version}` : "");
       for (const c of cards) {
+        const st = c.standing;
         out(c.superharness
-          ? `${c.label}: superharness, ${c.bar.ok} of ${c.bar.total} (standard ${STANDARD_VERSION})`
+          ? `${c.label}: ${st.says}. Superharness, ${c.bar.ok} of ${c.bar.total} (standard ${STANDARD_VERSION})${st.shortfalls.length ? `. Measured shortfalls: ${st.shortfalls.join(", ")}` : ""}${st.id === "recommended" && st.unmeasured.length ? `. Not measured yet: ${st.unmeasured.join(", ")}` : ""}`
           : `${c.label}: not a superharness, ${c.bar.ok} of ${c.bar.total}, missing: ${c.bar.missing.join(", ")}`);
       }
       out("");

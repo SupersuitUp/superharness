@@ -96,6 +96,29 @@ export function scoreHarness(profile) {
   };
 }
 
+/** The three things we say about a harness. Each is read off the scorecard; none is set by hand. */
+export const STANDINGS = {
+  recommended: "strongly recommended",
+  supported: "supported",
+  below: "not a superharness",
+};
+
+/**
+ * Where a harness stands. A superharness with no measured shortfall on the scorecard is strongly
+ * recommended. A superharness with one or more is supported, and `shortfalls` names them. A
+ * harness that misses a box of the bar is below it, and `missing` names the boxes.
+ *
+ * A shortfall is a row answered with a measured no. A row nobody has measured is not a
+ * shortfall; it is listed in `unmeasured` so that a recommendation resting on an unmeasured row
+ * can be seen to rest on it.
+ */
+export function standing(profile) {
+  const card = scoreHarness(profile);
+  const shortfalls = card.rows.filter((r) => r.ability && r.answer === "no").map((r) => r.id);
+  const id = !card.superharness ? "below" : shortfalls.length ? "supported" : "recommended";
+  return { id, says: STANDINGS[id], shortfalls, unmeasured: card.unmeasured, missing: card.bar.missing };
+}
+
 // ---------------------------------------------------------------------------
 // Models
 // ---------------------------------------------------------------------------

@@ -8,6 +8,7 @@ Standard version 2.0.0. This is a major version of the standard, because a harne
 
 Renamed:
 
+- `standing(profile)`: strongly recommended, supported, or not a superharness, read off the scorecard. A superharness with no measured no is strongly recommended; one with any is supported and the shortfalls are named. `superharness rubric` prints it first.
 - The package is `@supersuit/superharness`, the command is `superharness`, and the repository is `SupersuitUp/superharness`.
 - `CONTRACT.md` is `STANDARD.md`, titled "The superharness standard".
 - `STANDARD_VERSION` is the version export. `CONTRACT_VERSION` is still exported and equals it.

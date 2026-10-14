@@ -202,8 +202,8 @@ test("rubric starts with whether each harness is a superharness, then prints bot
   const r = run(["rubric"]);
   assert.equal(r.status, 0);
   const lines = r.stdout.split("\n");
-  assert.equal(lines[0], "Claude Code: superharness, 11 of 11 (standard 2.0.0)");
-  assert.equal(lines[1], "Codex: superharness, 11 of 11 (standard 2.0.0)");
+  assert.equal(lines[0], "Claude Code: strongly recommended. Superharness, 11 of 11 (standard 2.0.0). Not measured yet: followsStanding");
+  assert.equal(lines[1], "Codex: supported. Superharness, 11 of 11 (standard 2.0.0). Measured shortfalls: cardWaits, followsStanding, steersMidTask");
   assert.equal(lines[2], "");
   assert.match(r.stdout, /^Claude Code  20\.6 of 23\n  moldability 6\.6 of 9, steerability 2 of 2, reach 12 of 12$/m);
   assert.match(r.stdout, /^Codex  16\.7 of 23\n  moldability 6\.7 of 9, steerability 0 of 2, reach 10 of 12$/m);

@@ -41,6 +41,20 @@ Some reach rows repeat a box of the bar, so every superharness scores them in fu
 - **Background sessions, the question card and a question that waits are 2 each.** Work that continues while you are away, a question you can answer with one tap, and a question that is still there when you get to it. A card that answers itself on a timer has made a decision that was yours.
 - **Helpers, connected tools and the list of running sessions are 1 each.** They matter, and a session is still useful without any one of them.
 
+## Standing: what we say about a harness
+
+The aim is the best possible safe superintelligence in a person's hands, not support for every harness. So each harness gets one of three standings, and each is read off this scorecard. None is set by hand.
+
+- **Strongly recommended.** A superharness with no measured shortfall on the scorecard.
+- **Supported.** A superharness with one or more measured shortfalls. The standing names them.
+- **Not a superharness.** A harness that misses a box of the bar. The standing names the boxes.
+
+A shortfall is a row answered with a measured no. A row nobody has measured is not a shortfall, and it is named beside the standing so that a recommendation resting on an unmeasured row can be seen to rest on it.
+
+On the versions measured: Claude Code is strongly recommended, with `followsStanding` not measured yet. Codex is supported, with three measured shortfalls: `cardWaits`, `followsStanding` and `steersMidTask`. These are the only two superharnesses this package knows of. The standard and the check are public so that more can be built and shown to pass.
+
+`standing(profile)` returns `{ id, says, shortfalls, unmeasured, missing }`, and `superharness rubric` prints it on the first line for each harness.
+
 ## Moldability and steerability
 
 Moldability is how far your own context reshapes a harness before you say anything: what it calls itself, how it behaves, and what it does unprompted.
