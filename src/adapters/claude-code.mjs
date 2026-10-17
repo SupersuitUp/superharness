@@ -52,6 +52,16 @@ export default (env = {}) => {
     startBackground: ({ prompt, name = "Freedom", extra = [] }) =>
       ({ cmd: "claude", args: ["--bg", ...extra, "--name", name, "--", prompt] }),
     runPrompt: ({ prompt, extra = [] }) => ({ cmd: "claude", args: ["-p", ...extra, prompt] }),
+    // `claude --bg` prints "Run 'claude attach <job id>' to open it."; that job id is what attach,
+    // stop and the agents list name the session by.
+    sessionIdFrom: (output) => (String(output ?? "").match(/claude attach ([0-9a-f]{6,})/) || [])[1] ?? null,
+    listBackground: () => ({ cmd: "claude", args: ["agents", "--json"], read: (output) => {
+      const parsed = JSON.parse(String(output));
+      const list = Array.isArray(parsed) ? parsed : parsed?.agents ?? parsed?.sessions;
+      if (!Array.isArray(list)) throw new Error("claude agents --json printed no list");
+      return list;
+    } }),
+    stopBackground: ({ id }) => ({ cmd: "claude", args: ["stop", id] }),
     // AskUserQuestion's input is { questions: [{ question, header, multiSelect, options: [{ label,
     // description }] }] }. The person's choice comes back as the tool's own result.
     questionCard: {

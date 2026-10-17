@@ -5,7 +5,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import claudeCode, { slugCwd } from "../src/adapters/claude-code.mjs";
-import codex, { isCodexTurn } from "../src/adapters/codex.mjs";
+import codex, { isCodexTurn, CODEX_BACKGROUND } from "../src/adapters/codex.mjs";
 import { ABILITIES, MOMENTS } from "../src/contract.mjs";
 
 const HOME = "/Users/someone";
@@ -389,9 +389,31 @@ test("startBackground builds the command Freedom runs today", () => {
   const cc = claudeCode({}).startBackground({ prompt: "hi", name: "Freedom" });
   assert.deepEqual(cc.args.slice(0, 1), ["--bg"]);
   assert.deepEqual(cc.args.slice(-4), ["--name", "Freedom", "--", "hi"]);
-  const cx = codex({}).startBackground({ prompt: "hi", name: "Freedom" });
-  assert.deepEqual(cx.args.slice(0, 2), ["exec", "--json"]);
-  assert.equal(cx.args.at(-1), "hi");
+  // Codex starts through the shared app-server daemon (2.2.0): `codex exec` blocks until its turn
+  // ends, so it was never a background session.
+  const cx = codex({}).startBackground({ prompt: "hi", name: "Freedom", cwd: "/w" });
+  assert.equal(cx.cmd, process.execPath);
+  assert.deepEqual(cx.args.slice(0, 2), [CODEX_BACKGROUND, "start"]);
+  assert.deepEqual(cx.args.slice(2, 6), ["--name", "Freedom", "--cwd", "/w"]);
+  assert.deepEqual(cx.args.slice(-2), ["--", "hi"]);
+  assert.ok(!cx.args.includes("exec"));
+});
+test("each harness reads its own session id out of what starting one printed", () => {
+  assert.equal(claudeCode({}).sessionIdFrom("Started. Run 'claude attach abc12345' to open it."), "abc12345");
+  assert.equal(claudeCode({}).sessionIdFrom("nothing here"), null);
+  assert.equal(codex({}).sessionIdFrom('noise\n{"ok":true,"id":"01a14c39-156d","turnId":"t1"}\n'), "01a14c39-156d");
+  assert.equal(codex({}).sessionIdFrom('{"ok":false,"error":"no daemon"}'), null);
+});
+test("each harness lists and stops its background sessions with its own command", () => {
+  const cl = claudeCode({}).listBackground();
+  assert.deepEqual([cl.cmd, ...cl.args], ["claude", "agents", "--json"]);
+  assert.deepEqual(cl.read('[{"name":"a","kind":"background"}]'), [{ name: "a", kind: "background" }]);
+  assert.deepEqual(claudeCode({}).stopBackground({ id: "abc12345" }), { cmd: "claude", args: ["stop", "abc12345"] });
+  const xl = codex({}).listBackground();
+  assert.deepEqual(xl.args.slice(0, 2), [CODEX_BACKGROUND, "list"]);
+  assert.deepEqual(xl.read('{"ok":true,"sessions":[{"id":"t","status":"busy"}]}'), [{ id: "t", status: "busy" }]);
+  assert.throws(() => xl.read('{"ok":false,"error":"no daemon"}'), /no daemon/);
+  assert.deepEqual(codex({}).stopBackground({ id: "t" }).args.slice(0, 3), [CODEX_BACKGROUND, "stop", "t"]);
 });
 test("identity delivery differs, and the contract says how", () => {
   assert.equal(claudeCode({}).deliverIdentity.via, "hook-context");

@@ -24,8 +24,8 @@ const SAYS = {
 };
 const failedIds = (p) => checkBar(p).filter((b) => !b.ok).map((b) => b.id);
 
-test("the standard is version 2.1.0, and CONTRACT_VERSION is kept as its alias", () => {
-  assert.equal(STANDARD_VERSION, "2.1.0");
+test("the standard is version 2.2.0, and CONTRACT_VERSION is kept as its alias", () => {
+  assert.equal(STANDARD_VERSION, "2.2.0");
   assert.equal(CONTRACT_VERSION, STANDARD_VERSION);
 });
 test("the definition is the one sentence", () => {

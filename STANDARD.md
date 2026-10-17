@@ -1,6 +1,6 @@
 # The superharness standard
 
-**Version 2.1.0**
+**Version 2.2.0**
 
 A superharness is a harness you can hand your whole computer and your whole context to, and still be the one in command.
 
@@ -158,6 +158,9 @@ What a system asks the harness to do.
 - `actions.deliverIdentity` (core): How instruction files reach the model: { via: 'hook-context' | 'file', file?: (home) => path, maxChars?: number }.
 - `actions.isTurn` (optional): True for a record line that is something a person or the model said.
 - `actions.startBackground` (optional): The command that starts a session nobody is watching: ({ prompt, name, cwd }) => { cmd, args }. Null when the harness cannot.
+- `actions.sessionIdFrom` (optional): Reads the session id out of what startBackground printed: (output) => id | null.
+- `actions.listBackground` (optional): The command that lists the background sessions running, and how to read what it prints: () => { cmd, args, read: (output) => [{ id, name, status, pid? }] }. Status is busy while a session is working and idle or waiting while it is not.
+- `actions.stopBackground` (optional): The command that stops one background session: ({ id }) => { cmd, args }.
 - `actions.runPrompt` (optional): The command that runs one prompt and returns: ({ prompt, cwd }) => { cmd, args }.
 - `actions.questionCard` (optional): How the harness asks the person a question as a card: { tools: string[], shape: string, read: (toolInput) => { questions: [{ text, options }] }, answeredBy: 'tool-result' | 'next-user-message', answerPolicy?: string }.
 - `actions.pluginManifestDir` (optional): The folder name a plugin's manifest lives in.
@@ -291,7 +294,7 @@ npx @supersuit/superharness check ./toy.mjs
 It prints one line per clause, `PASS`, `FAIL` or `SKIP`, and a line counting them. Then it prints one line per box, and it ends with one of two lines:
 
 ```
-SUPERHARNESS toy: 11 of 11 (standard 2.1.0)
+SUPERHARNESS toy: 11 of 11 (standard 2.2.0)
 NOT A SUPERHARNESS toy: 9 of 11, missing: remoteControl, questionCard
 ```
 

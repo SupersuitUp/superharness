@@ -44,8 +44,8 @@ test("check passes both builtins and fails a broken file with the clause named",
 test("check --json is machine readable", () => {
   const j = JSON.parse(run(["check", "codex", "--json"]).stdout);
   assert.equal(j.pass, true);
-  assert.equal(j.standard, "2.1.0");
-  assert.equal(j.contract, "2.1.0", "the old key is kept for a reader that has not moved");
+  assert.equal(j.standard, "2.2.0");
+  assert.equal(j.contract, "2.2.0", "the old key is kept for a reader that has not moved");
   assert.equal(j.superharness, true);
   assert.deepEqual(j.bar, { ok: 11, total: 11, missing: [] });
   assert.equal(j.boxes.length, 11);
@@ -61,7 +61,7 @@ test("check ends with one line per box and then SUPERHARNESS, for both shipped h
     const r = run(["check", id]);
     assert.equal(r.status, 0, id);
     const lines = r.stdout.trim().split("\n");
-    assert.equal(lines.at(-1), `SUPERHARNESS ${id}: 11 of 11 (standard 2.1.0)`);
+    assert.equal(lines.at(-1), `SUPERHARNESS ${id}: 11 of 11 (standard 2.2.0)`);
     const boxes = lines.slice(-12, -1);
     assert.equal(boxes.length, 11);
     for (const l of boxes) assert.match(l, /^PASS  \w+\s+(capability|safety)\s+\S/, l);
@@ -78,7 +78,7 @@ test("check says NOT A SUPERHARNESS with the count and the missing boxes, and ex
 test("an outside adapter file that checks all eleven boxes is a superharness", () => {
   const r = run(["check", superFile]);
   assert.equal(r.status, 0);
-  assert.equal(r.stdout.trim().split("\n").at(-1), "SUPERHARNESS supertoy: 11 of 11 (standard 2.1.0)");
+  assert.equal(r.stdout.trim().split("\n").at(-1), "SUPERHARNESS supertoy: 11 of 11 (standard 2.2.0)");
 });
 test("bar prints only the eleven lines, and exits 0 only when all eleven are checked", () => {
   for (const id of ["claude-code", "codex", superFile]) {
@@ -100,7 +100,7 @@ test("bar prints only the eleven lines, and exits 0 only when all eleven are che
 test("bar --json is machine readable", () => {
   const j = JSON.parse(run(["bar", "codex", "--json"]).stdout);
   assert.equal(j.harness, "codex");
-  assert.equal(j.standard, "2.1.0");
+  assert.equal(j.standard, "2.2.0");
   assert.equal(j.superharness, true);
   assert.deepEqual(j.bar, { ok: 11, total: 11, missing: [] });
   assert.equal(j.boxes.length, 11);
@@ -130,7 +130,7 @@ test("--version prints the package version and the standard version", () => {
   const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
   const r = run(["--version"]);
   assert.equal(r.status, 0);
-  assert.equal(r.stdout.trim(), `${pkg.version} (standard 2.1.0)`);
+  assert.equal(r.stdout.trim(), `${pkg.version} (standard 2.2.0)`);
 });
 test("list --json and which --json are machine readable, and which defaults to claude-code", () => {
   assert.deepEqual(JSON.parse(run(["list", "--json"]).stdout).map((h) => h.id), ["claude-code", "codex"]);
@@ -217,8 +217,8 @@ test("rubric starts with whether each harness is a superharness, then prints bot
   const r = run(["rubric"]);
   assert.equal(r.status, 0);
   const lines = r.stdout.split("\n");
-  assert.equal(lines[0], "Claude Code: strongly recommended. Superharness, 11 of 11 (standard 2.1.0). Not measured yet: followsStanding");
-  assert.equal(lines[1], "Codex: supported. Superharness, 11 of 11 (standard 2.1.0). Measured shortfalls: cardWaits, followsStanding, steersMidTask");
+  assert.equal(lines[0], "Claude Code: strongly recommended. Superharness, 11 of 11 (standard 2.2.0). Not measured yet: followsStanding");
+  assert.equal(lines[1], "Codex: supported. Superharness, 11 of 11 (standard 2.2.0). Measured shortfalls: cardWaits, followsStanding, steersMidTask");
   assert.equal(lines[2], "");
   assert.match(r.stdout, /^Claude Code  20\.6 of 23\n  moldability 6\.6 of 9, steerability 2 of 2, reach 12 of 12$/m);
   assert.match(r.stdout, /^Codex  16\.7 of 23\n  moldability 6\.7 of 9, steerability 0 of 2, reach 10 of 12$/m);
@@ -236,7 +236,7 @@ test("rubric --needs adds the recommendation as the last line, and --json carrie
   assert.match(n.stdout.trim().split("\n").at(-1), /^Claude Code, because you need remote control and 2 of the 2 superharnesses scored have that measured today/);
   const j = JSON.parse(run(["rubric", "--json", "--needs", "phone,liveSessionRegistry"]).stdout);
   assert.equal(j.recommendation.pick, "claude-code");
-  assert.equal(j.standard, "2.1.0");
+  assert.equal(j.standard, "2.2.0");
   assert.deepEqual(j.harnesses.map((h) => [h.id, h.superharness, h.bar.ok]), [["claude-code", true, 11], ["codex", true, 11]]);
   assert.deepEqual(j.modelResults, []);
 });

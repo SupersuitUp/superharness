@@ -110,7 +110,7 @@ PASS  permission     safety      It asks permission, and can be restricted to a 
 PASS  record         safety      It keeps a full record of every session on your own disk, in a form you can read and take with you.
 PASS  remoteControl  safety      You can reach it from your phone: start a session, check on one, answer it.
 PASS  questionCard   safety      It can ask you a question as a card with choices.
-SUPERHARNESS codex: 11 of 11 (standard 2.1.0)
+SUPERHARNESS codex: 11 of 11 (standard 2.2.0)
 ```
 
 A harness that misses a box is told which, and why:
@@ -153,8 +153,8 @@ Whether each harness is a superharness, then the scorecard for each, with a subt
 
 ```
 $ superharness rubric --needs liveSessionRegistry
-Claude Code: strongly recommended. Superharness, 11 of 11 (standard 2.1.0). Not measured yet: followsStanding
-Codex: supported. Superharness, 11 of 11 (standard 2.1.0). Measured shortfalls: cardWaits, followsStanding, steersMidTask
+Claude Code: strongly recommended. Superharness, 11 of 11 (standard 2.2.0). Not measured yet: followsStanding
+Codex: supported. Superharness, 11 of 11 (standard 2.2.0). Measured shortfalls: cardWaits, followsStanding, steersMidTask
 
 Claude Code  20.6 of 23
   moldability 6.6 of 9, steerability 2 of 2, reach 12 of 12
@@ -198,7 +198,7 @@ Prints every command with its options. `superharness --version` prints the packa
 
 ```
 $ superharness --version
-0.3.0 (standard 2.1.0)
+0.4.0 (standard 2.2.0)
 ```
 
 ## The library

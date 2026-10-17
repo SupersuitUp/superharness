@@ -1,7 +1,7 @@
 // The superharness standard's clauses, as data. STANDARD.md is the same thing for people; a test
 // keeps them in step. The clauses are the questions every adapter answers. The bar (src/bar.mjs)
 // is the eleven boxes decided from those answers.
-export const STANDARD_VERSION = "2.1.0";
+export const STANDARD_VERSION = "2.2.0";
 
 /** The name this export had before the standard had a bar. Kept so an importer does not break. */
 export const CONTRACT_VERSION = STANDARD_VERSION;
@@ -41,6 +41,11 @@ export const CLAUSES = [
   c("actions", "deliverIdentity", "core", "object", "How instruction files reach the model: { via: 'hook-context' | 'file', file?: (home) => path, maxChars?: number }."),
   c("actions", "isTurn", "optional", "function", "True for a record line that is something a person or the model said."),
   c("actions", "startBackground", "optional", "nullable-function", "The command that starts a session nobody is watching: ({ prompt, name, cwd }) => { cmd, args }. Null when the harness cannot."),
+  // Added in 2.2.0: the rest of a background session's life, so a host can start, find and stop one
+  // without knowing which harness it is driving.
+  c("actions", "sessionIdFrom", "optional", "function", "Reads the session id out of what startBackground printed: (output) => id | null."),
+  c("actions", "listBackground", "optional", "nullable-function", "The command that lists the background sessions running, and how to read what it prints: () => { cmd, args, read: (output) => [{ id, name, status, pid? }] }. Status is busy while a session is working and idle or waiting while it is not."),
+  c("actions", "stopBackground", "optional", "nullable-function", "The command that stops one background session: ({ id }) => { cmd, args }."),
   c("actions", "runPrompt", "optional", "nullable-function", "The command that runs one prompt and returns: ({ prompt, cwd }) => { cmd, args }."),
   c("actions", "questionCard", "optional", "object", "How the harness asks the person a question as a card: { tools: string[], shape: string, read: (toolInput) => { questions: [{ text, options }] }, answeredBy: 'tool-result' | 'next-user-message', answerPolicy?: string }."),
   c("actions", "pluginManifestDir", "optional", "string", "The folder name a plugin's manifest lives in."),

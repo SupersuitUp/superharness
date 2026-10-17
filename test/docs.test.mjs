@@ -12,7 +12,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (f) => readFileSync(join(ROOT, f), "utf8");
 const PROSE = ["STANDARD.md", "RUBRIC.md", "README.md", "CHANGELOG.md"];
 const SOURCE = ["src/contract.mjs", "src/bar.mjs", "src/card.mjs", "src/define.mjs", "src/registry.mjs", "src/conformance.mjs", "src/rubric.mjs",
-  "src/bin-resolver.mjs", "src/places.mjs", "src/adapters/claude-code.mjs", "src/adapters/codex.mjs", "src/index.mjs", "bin/superharness.mjs"];
+  "src/bin-resolver.mjs", "src/places.mjs", "src/adapters/claude-code.mjs", "src/adapters/codex.mjs", "src/index.mjs", "bin/superharness.mjs",
+  "src/codex-background.mjs", "src/uds-websocket.mjs", "bin/codex-background.mjs"];
 
 test("STANDARD.md is titled as the standard and carries the definition sentence", () => {
   const doc = read("STANDARD.md");
@@ -148,7 +149,7 @@ test("the adapter STANDARD.md teaches is a superharness when it is saved and che
   assert.equal(isSuperharness(p), true);
   const r = cli(["check", file]);
   assert.equal(r.status, 0);
-  assert.equal(r.stdout.trim().split("\n").at(-1), "SUPERHARNESS toy: 11 of 11 (standard 2.1.0)");
+  assert.equal(r.stdout.trim().split("\n").at(-1), "SUPERHARNESS toy: 11 of 11 (standard 2.2.0)");
 });
 test("the starter adapter in the README prints exactly the lines the README shows", () => {
   const file = join(exampleDir, "small.mjs");

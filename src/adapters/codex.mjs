@@ -16,6 +16,10 @@
 import { cardReader } from "../card.mjs";
 import { defineHarness } from "../define.mjs";
 import { codexPlaces } from "../places.mjs";
+import { fileURLToPath } from "node:url";
+
+/** The bin a host runs to start, list and stop Codex background sessions. */
+export const CODEX_BACKGROUND = fileURLToPath(new URL("../../bin/codex-background.mjs", import.meta.url));
 
 /** An env var that is set but blank is unset, which is what every call site's `.trim()` means. */
 const envDir = (env, name) => {
@@ -71,7 +75,25 @@ export default (env = {}) => {
     // a hook's context and dropped the middle (measured 2026-09-23), while $CODEX_HOME/AGENTS.md
     // was read whole at 136 KB.
     deliverIdentity: { via: "file", file: places.userInstructionsFile, maxChars: 5000 },
-    startBackground: ({ prompt, extra = [] }) => ({ cmd: "codex", args: ["exec", "--json", ...extra, prompt] }),
+    // Through the shared app-server daemon, not `codex exec`, which blocks until its turn ends. The
+    // bin starts the daemon if it is down, starts a named thread with the prompt as its first turn,
+    // prints one line of JSON with the thread id, and exits while the thread runs on (measured
+    // 2026-10-17 on 0.162.1; src/codex-background.mjs says how). `extra` is the bin's own flags:
+    // --approval, --sandbox, --model.
+    startBackground: ({ prompt, name, cwd, extra = [] }) => ({ cmd: process.execPath, args: [CODEX_BACKGROUND, "start",
+      ...(name ? ["--name", name] : []), ...(cwd ? ["--cwd", cwd] : []), "--codex", envDir(env, "FREEDOM_CODEX_BIN") || "codex", ...extra, "--", prompt] }),
+    sessionIdFrom: (output) => {
+      for (const line of String(output ?? "").trim().split("\n").reverse()) {
+        try { const o = JSON.parse(line); if (o?.ok && o.id) return o.id; } catch { /* not the JSON line */ }
+      }
+      return null;
+    },
+    listBackground: () => ({ cmd: process.execPath, args: [CODEX_BACKGROUND, "list", "--codex", envDir(env, "FREEDOM_CODEX_BIN") || "codex"], read: (output) => {
+      const o = JSON.parse(String(output).trim().split("\n").pop());
+      if (!o?.ok || !Array.isArray(o.sessions)) throw new Error(`codex background list failed: ${o?.error || "no list"}`);
+      return o.sessions;
+    } }),
+    stopBackground: ({ id }) => ({ cmd: process.execPath, args: [CODEX_BACKGROUND, "stop", id, "--codex", envDir(env, "FREEDOM_CODEX_BIN") || "codex"] }),
     runPrompt: ({ prompt, extra = [] }) => ({ cmd: "codex", args: ["exec", ...extra, prompt] }),
     // Source: Freedom's reference file codex-question-cards.md. The async tool takes
     // { questions: [{ title, options: string[] }] }, and its result of `accepted: true` means the
@@ -89,8 +111,8 @@ export default (env = {}) => {
       note: "AskUserQuestion is Claude Code's tool name, and Codex does not expose a tool by that name. Where a skill says AskUserQuestion, use the question card tool this session actually exposes (request_user_input_async, or request_user_input where its own description allows it). When neither is exposed, ask the question plainly in chat and keep the decision pending until the person answers.",
     },
     abilities: {
-      backgroundSession: yes("2026-09-24", "0.156.0",
-        "`codex exec` ran a turn from the command line in an isolated CODEX_HOME with the Freedom plugin installed, and attached the named skill's SKILL.md to that turn."),
+      backgroundSession: yes("2026-10-17", "codex-cli 0.162.1",
+        "A thread started on the shared app-server daemon (bin/codex-background.mjs start), whose first turn slept 20 seconds and then wrote a file, kept running after the starting program exited 8.6 seconds in, and the file appeared with nothing connected."),
       phone: yes(TODAY, VERSION,
         "`codex remote-control --help` on this version offers start, stop and pair, and the operator reports reaching Codex sessions from his phone (his firsthand report, 2026-10-13; this package did not start remote control). In September, `codex features list` on 0.156.0 showed `remote_control removed`, which was misread as the feature being gone. The same line still prints on this version, beside the working command."),
       pluginHooks: { answer: "unmeasured",

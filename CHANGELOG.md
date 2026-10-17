@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0 (2026-10-17)
+
+Standard version 2.2.0. Additions only: both shipped harnesses are still superharnesses, 11 of 11, with the same scorecard.
+
+- **Codex can start a background session that runs on with nobody watching.** Its `startBackground` used to be `codex exec --json`, which blocks until the turn ends, so it was never a background session. It now runs `bin/codex-background.mjs start`, which starts Codex's shared app-server daemon if it is down, starts a named thread in the folder with nobody needed to approve anything, sends the prompt as its first turn, prints one line of JSON with the thread id, and exits while the thread runs on. Measured on codex-cli 0.162.1: a thread whose turn slept 20 seconds and then wrote a file finished the file after the starting program had exited. `codex resume <id>` opens it in a terminal.
+- **Three new optional actions finish a background session's life**, so a host can start, find and stop one without knowing which harness it drives: `sessionIdFrom` (read the id out of what starting printed), `listBackground` (the command that lists running sessions, and how to read what it prints, with busy for a session that is working), and `stopBackground`. Claude Code answers with `claude attach`, `claude agents --json` and `claude stop`; Codex with the same bin's `list` and `stop`, which interrupts the turn in progress.
+- `src/codex-background.mjs` is the daemon client (start, list, stop, and starting the daemon when its socket is missing), and `src/uds-websocket.mjs` a small dependency-free WebSocket client over a Unix socket, because the daemon's control socket speaks WebSocket and Node's own client cannot dial a Unix socket. Tests drive a fake daemon that speaks the real wire format.
+
 ## 0.3.0 (2026-10-13)
 
 Standard version 2.1.0. Additions only: nothing an existing importer reads has changed, and both shipped harnesses are still superharnesses, 11 of 11, with the same scorecard (Claude Code 20.6 of 23, Codex 16.7 of 23).
