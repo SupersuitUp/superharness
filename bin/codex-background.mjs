@@ -15,7 +15,11 @@ const dash = argv.indexOf("--");
 const head = dash < 0 ? argv : argv.slice(0, dash);
 const prompt = dash < 0 ? null : argv.slice(dash + 1).join(" ");
 const flag = (f) => { const i = head.indexOf(f); return i < 0 ? null : head[i + 1] ?? null; };
-const say = (o, code = 0) => { process.stdout.write(JSON.stringify(o) + "\n"); process.exit(code); };
+// Exit only once the line has left the process: process.exit right after a write can drop it when
+// stdout is a pipe, which is how every host reads this. Throwing SAID stops the verb where it is,
+// and the write callback is what ends the run.
+const SAID = Symbol("said");
+const say = (o, code = 0) => { process.stdout.write(JSON.stringify(o) + "\n", () => process.exit(code)); throw SAID; };
 
 const [verb] = head;
 const codex = flag("--codex") || process.env.FREEDOM_CODEX_BIN || "codex";
@@ -36,5 +40,7 @@ try {
     say({ ok: true, id, ...(await stopSession({ id, socket })) });
   }
 } catch (e) {
-  say({ ok: false, error: String(e?.message || e).split("\n")[0] }, 1);
+  if (e !== SAID) {
+    try { say({ ok: false, error: String(e?.message || e).split("\n")[0] }, 1); } catch { /* said */ }
+  }
 }

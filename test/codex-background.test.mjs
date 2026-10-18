@@ -120,3 +120,15 @@ test("the bin prints one JSON line with the session id that sessionIdFrom reads"
   const { default: codex } = await import("../src/adapters/codex.mjs");
   assert.equal(codex({}).sessionIdFrom(out), "thr_1");
 });
+
+test("the bin never exits in the same breath as a print, and a usage error still reaches the pipe", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { spawnSync } = await import("node:child_process");
+  const bin = fileURLToPath(new URL("../bin/codex-background.mjs", import.meta.url));
+  const src = readFileSync(bin, "utf8");
+  assert.doesNotMatch(src, /stdout\.write\([^;]*\);\s*process\.exit\(/, "exit from the write callback, so a piped line is not lost");
+  const r = spawnSync(process.execPath, [bin, "bogus"], { encoding: "utf8" });
+  assert.equal(r.status, 2);
+  assert.equal(JSON.parse(r.stdout.trim()).ok, false);
+  assert.equal(r.stdout.trim().split("\n").length, 1, "one line, never a second say() after the first");
+});

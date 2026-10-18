@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **`bin/codex-background.mjs` no longer exits before its one line of JSON has left the process.** `say()` called `process.exit` straight after writing, which can drop the line when stdout is a pipe, and a pipe is how every host reads it. It now exits from the write's callback, and stops the verb where it is so nothing runs after the line is printed. Reported in ContinentalWorks/freedom-dev#720.
+
 ## 0.4.0 (2026-10-17)
 
 Standard version 2.2.0. Additions only: both shipped harnesses are still superharnesses, 11 of 11, with the same scorecard.
