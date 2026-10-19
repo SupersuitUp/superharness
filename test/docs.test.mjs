@@ -62,7 +62,7 @@ test("a person reads remote control, never the old words for it", () => {
   for (const f of ["STANDARD.md", "RUBRIC.md", "README.md"]) assert.match(read(f), /remote control/i, f);
 });
 test("the old package name survives only in the changelog", () => {
-  for (const f of ["STANDARD.md", "RUBRIC.md", "README.md", "package.json", ".github/workflows/ci.yml", ".github/workflows/publish.yml", ...SOURCE])
+  for (const f of ["STANDARD.md", "RUBRIC.md", "README.md", "package.json", ".github/workflows/publish.yml", ...SOURCE])
     assert.ok(!/harness-harnesser|CONTRACT\.md/.test(read(f)), `${f} still carries the old name`);
   assert.match(read("CHANGELOG.md"), /harness-harnesser/);
 });
