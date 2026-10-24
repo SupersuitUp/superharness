@@ -198,7 +198,7 @@ Prints every command with its options. `superharness --version` prints the packa
 
 ```
 $ superharness --version
-0.4.1 (standard 2.2.0)
+0.4.2 (standard 2.2.0)
 ```
 
 ## The library
