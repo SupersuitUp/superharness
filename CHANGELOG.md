@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.2 (2026-10-23)
+
+- **No adapter tells a host to type the retired `freedom:` skill prefix.** The Claude Code profile's `slashCommands` evidence now names `/supersuit:<skill>`, and the Codex one `$supersuit:<skill>`, since both harnesses dropped the `freedom:` alias. A test refuses the old form. Reported in ContinentalWorks/supersuit-dev#929.
+
 ## 0.4.1 (2026-10-21)
 
 - **`bin/codex-background.mjs` no longer exits before its one line of JSON has left the process.** `say()` called `process.exit` straight after writing, which can drop the line when stdout is a pipe, and a pipe is how every host reads it. It now exits from the write's callback, and stops the verb where it is so nothing runs after the line is printed. Reported in ContinentalWorks/freedom-dev#720.

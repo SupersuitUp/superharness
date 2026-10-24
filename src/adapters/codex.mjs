@@ -118,7 +118,7 @@ export default (env = {}) => {
       pluginHooks: { answer: "unmeasured",
         evidence: "`codex features list` on 0.156.0 (2026-09-22) reported plugin_hooks as removed and off, while the same binary carried a trust step for plugin hooks. Unresolved." },
       slashCommands: { answer: "no", measured: "2026-09-22", version: "0.156.0",
-        evidence: "Freedom's profile, read from the 0.156.0 binary, records custom prompts as deprecated in favour of skills. Skills are attached as $freedom:<skill> instead." },
+        evidence: "Freedom's profile, read from the 0.156.0 binary, records custom prompts as deprecated in favour of skills. Skills are attached as $supersuit:<skill> instead (the freedom: prefix until its alias was retired, supersuit-dev#916)." },
       subagents: yes(TODAY, VERSION,
         "The operator reports that Codex hands work to helper agents (his firsthand report, 2026-10-13). The binary lists SubagentStart and SubagentStop among its hook events, and `codex features list` on this version shows multi_agent as stable and on. This package did not start a helper itself."),
       mcp: yes("2026-09-23", "0.156.0",

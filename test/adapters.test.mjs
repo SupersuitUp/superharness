@@ -426,3 +426,14 @@ test("vocabulary: Claude Code has the question card natively; Codex gets a note"
   assert.equal(codex({}).vocabulary.askOperator, null);
   assert.ok(codex({}).vocabulary.note.length > 20);
 });
+
+// ContinentalWorks/supersuit-dev#929: the `freedom:` skill prefix is retired on both harnesses
+// (Claude Code 2026-10-23, Codex supersuit-dev#916), so an adapter's evidence that still tells a
+// host to type it points at an alias that attaches nothing.
+test("no adapter evidence names the retired freedom: skill prefix", () => {
+  for (const [name, profile] of [["claude-code", claudeCode({})], ["codex", codex({})]]) {
+    const text = JSON.stringify(profile);
+    assert.ok(text.includes("supersuit:<skill>"), `${name} names no skill prefix at all`);
+    assert.doesNotMatch(text, /[/$]freedom:<skill>/, `${name} still names the retired freedom: prefix`);
+  }
+});

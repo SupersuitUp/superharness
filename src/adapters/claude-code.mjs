@@ -75,7 +75,7 @@ export default (env = {}) => {
       backgroundSession: yes("`claude --help` on this version lists `--bg, --background`, and Freedom's spin-up-freedom-session script dispatches every background session with `claude --bg`."),
       phone: yes("`claude --help` on this version lists `--remote-control`, and the com.getfreedom.remotecontrol LaunchAgent that runs `claude remote-control` was loaded on the measuring Mac."),
       pluginHooks: yes("Freedom ships its hooks inside the plugin (hooks/hooks.json), and Claude Code runs them from the installed plugin with CLAUDE_PLUGIN_ROOT set."),
-      slashCommands: yes("Freedom's skills are invoked by name as /freedom:<skill> in Claude Code sessions."),
+      slashCommands: yes("Supersuit's skills are invoked by name as /supersuit:<skill> in Claude Code sessions (the /freedom: alias was retired 2026-10-23)."),
       subagents: yes("This package was built by a subagent that a Claude Code session on this version dispatched."),
       mcp: yes("`claude --help` on this version lists `--mcp-config`, and MCP server tools were loaded in the session that built this package."),
       liveSessionRegistry: yes("~/.claude/sessions held per-process <pid>.json records for running sessions on the measuring Mac (28 entries that day)."),
