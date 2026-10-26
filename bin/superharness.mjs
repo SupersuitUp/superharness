@@ -24,7 +24,7 @@ Usage:
       The harnesses this package ships an adapter for.
   superharness which [--json] [--home <dir>]
       The harness this machine is set to. FREEDOM_HARNESS wins, then "harness" in
-      <home>/.freedom/config.json, then claude-code.
+      <home>/.supersuit/config.json, then claude-code.
   superharness path <place> [--harness <id|file>] [--home <dir>]
       One path, and nothing else. Exit 1 when the harness has no such place.
       Places: ${PATH_PLACES.join(", ")}.

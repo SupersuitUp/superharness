@@ -54,7 +54,7 @@ codex	Codex
 
 ### `superharness which`
 
-The harness this machine is set to. The `FREEDOM_HARNESS` environment variable wins, then `harness` in `~/.freedom/config.json`, then `claude-code`. An unknown name falls back to `claude-code` and never fails.
+The harness this machine is set to. The `FREEDOM_HARNESS` environment variable wins, then `harness` in `~/.supersuit/config.json`, then `claude-code`. An unknown name falls back to `claude-code` and never fails.
 
 ```
 $ superharness which
@@ -198,7 +198,7 @@ Prints every command with its options. `superharness --version` prints the packa
 
 ```
 $ superharness --version
-0.4.2 (standard 2.2.0)
+0.4.3 (standard 2.2.0)
 ```
 
 ## The library
@@ -248,7 +248,7 @@ recommend({ needs: ["liveSessionRegistry"] }, [h, codex]).because;
 | `BUILTIN`, `HARNESSES`, `PROFILES`, `DEFAULT_HARNESS` | The shipped adapters, their ids, a built profile of each, and `"claude-code"` |
 | `loadAdapter(pathOrId)` | An adapter factory from a shipped id or a file. Async |
 | `register(id, factory)` | Makes an outside adapter resolvable by id |
-| `harnessId(opts)`, `harness(opts)`, `isSwapped(opts)`, `installed(profile, home)` | The resolver. `opts` is `{ env, home, config, envVar, configFile }`; `envVar` defaults to `FREEDOM_HARNESS` and `configFile` to `(home) => home/.freedom/config.json`, so another product can use its own names |
+| `harnessId(opts)`, `harness(opts)`, `isSwapped(opts)`, `installed(profile, home)` | The resolver. `opts` is `{ env, home, config, envVar, configFile }`; `envVar` defaults to `FREEDOM_HARNESS` and `configFile` to `(home) => home/.supersuit/config.json`, so another product can use its own names |
 | `checkStatic(profile)`, `checkLive(profile, opts)`, `summarize(results)` | The check. `summarize` returns `pass` for the clauses and `superharness` and `bar` for the boxes |
 | `standing(profile)`, `STANDINGS` | Where a harness stands: strongly recommended, supported, or not a superharness, read off the scorecard with the shortfalls named. |
 | `HARNESS_ROWS`, `QUALITIES`, `MOLDABILITY`, `STEERABILITY`, `scoreHarness(profile)` | The harness scorecard. Every row has a `quality`, and the card starts with `superharness` and `bar` and carries a subtotal per quality in `qualities` |

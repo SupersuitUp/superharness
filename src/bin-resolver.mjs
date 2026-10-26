@@ -56,7 +56,7 @@ function nvmCandidates(home, exists, list) {
 export const SYSTEM_CLAUDE_PATHS = ["/opt/homebrew/bin/claude", "/usr/local/bin/claude"];
 
 export const CANDIDATES = (home = homedir(), { exists = existsSync, list = readdirSync } = {}) => [
-  join(home, ".freedom", "bin", "claude-current"),
+  join(home, ".supersuit", "bin", "claude-current"),
   join(home, ".local", "bin", "claude"),
   ...nvmCandidates(home, exists, list),
   ...SYSTEM_CLAUDE_PATHS,
@@ -87,12 +87,12 @@ export function claudeInstalls({ home = homedir(), exists = existsSync, list = r
 }
 
 /** Where an operator PINS a binary. A pin is a decision, so it wins outright, like the env var. */
-export const pinnedPath = (home = userHome()) => join(home, ".freedom", "bin", "claude-current");
+export const pinnedPath = (home = userHome()) => join(home, ".supersuit", "bin", "claude-current");
 
 /**
  * The best copy to spawn, with the path, so a row can name what it read.
  *
- * THE PIN WINS, AND IT IS KEPT CURRENT RATHER THAN OUTRANKED. ~/.freedom/bin/claude-current is
+ * THE PIN WINS, AND IT IS KEPT CURRENT RATHER THAN OUTRANKED. ~/.supersuit/bin/claude-current (it was ~/.freedom/bin until 0.4.3; Supersuit links both names to one folder) is
  * Freedom's stable path for the Full Disk Access grant (`pinnedBin` in freedom-timer.mjs), and the
  * timers and the overnight pass all reach for it first. It is re-pointed at the current install
  * on every session start and every converge (`repinIfPresent`), so the resolver can keep
@@ -122,5 +122,5 @@ export function claudeBin(opts = {}) {
 
 /** The directories a launchd PATH needs so a bare `claude` (and `node`) resolve under it. */
 export function launchdPathDirs({ home = homedir() } = {}) {
-  return [join(home, ".freedom", "bin"), join(home, ".local", "bin")];
+  return [join(home, ".supersuit", "bin"), join(home, ".local", "bin")];
 }

@@ -17,9 +17,9 @@ test("FREEDOM_CLAUDE_BIN wins over everything on disk", () => {
 });
 
 test("the first candidate on disk wins, in order: a pinned claude-current, then the native installer's symlink, then brew", () => {
-  assert.deepEqual(CANDIDATES("/U"), ["/U/.freedom/bin/claude-current", "/U/.local/bin/claude", "/opt/homebrew/bin/claude", "/usr/local/bin/claude"]);
+  assert.deepEqual(CANDIDATES("/U"), ["/U/.supersuit/bin/claude-current", "/U/.local/bin/claude", "/opt/homebrew/bin/claude", "/usr/local/bin/claude"]);
   assert.equal(claudeBin({ env: {}, home: "/U", exists: (p) => p === "/U/.local/bin/claude" }), "/U/.local/bin/claude");
-  assert.equal(claudeBin({ env: {}, home: "/U", exists: (p) => p.endsWith("claude-current") || p === "/U/.local/bin/claude" }), "/U/.freedom/bin/claude-current");
+  assert.equal(claudeBin({ env: {}, home: "/U", exists: (p) => p.endsWith("claude-current") || p === "/U/.local/bin/claude" }), "/U/.supersuit/bin/claude-current");
 });
 
 test("nothing on disk falls back to the bare name, which is right in a terminal and wrong nowhere worse than before", () => {
@@ -31,7 +31,7 @@ test("no candidate is a claude-managed versioned path: ~/.local/share/claude/ver
 });
 
 test("the launchd PATH additions are the two user-level bin dirs a candidate can live in", () => {
-  assert.deepEqual(launchdPathDirs({ home: "/U" }), ["/U/.freedom/bin", "/U/.local/bin"]);
+  assert.deepEqual(launchdPathDirs({ home: "/U" }), ["/U/.supersuit/bin", "/U/.local/bin"]);
 });
 
 // NOT PORTED: the origin test "spin-up and the board both spawn through this resolver" reads two
@@ -114,14 +114,14 @@ test("a copy whose version cannot be read sorts oldest rather than winning by po
 
 // A PIN IS A DECISION, AND A NEWER COPY DOES NOT OVERRULE IT.
 //
-// ~/.freedom/bin/claude-current is where an operator pins a binary: freedom-timer.mjs calls it
+// ~/.supersuit/bin/claude-current is where an operator pins a binary: freedom-timer.mjs calls it
 // `pinnedBin`, and the meeting timer, the overnight pass and spin-up all reach for it first.
 // Ranking purely by version would have silently undone that choice the moment anything newer
 // appeared. #242 is about position beating VERSION among ordinary installs; it is not a licence
 // to overrule somebody's pin. The row is where a stale pin gets raised, because that is a
 // decision for the operator rather than for the resolver.
 test("a pinned claude-current wins even when a newer copy exists, and says it is a pin", () => {
-  const PIN = "/U/.freedom/bin/claude-current";
+  const PIN = "/U/.supersuit/bin/claude-current";
   const versions = { [PIN]: "2.1.263", "/U/.local/bin/claude": "2.1.281" };
   const best = bestClaudeBin({ env: {}, home: "/U", exists: (p) => p in versions, list: () => [],
                                version: (p) => versions[p] ?? null });
@@ -137,7 +137,7 @@ test("cmpV, claudeVersion and pinnedPath keep the origin's names and behaviour",
   assert.equal(m.cmpV("1.0", "1.0.0"), 0);
   assert.equal(m.claudeVersion("/x", { run: () => "2.1.296 (Claude Code)" }), "2.1.296");
   assert.equal(m.claudeVersion("/x", { run: () => { throw new Error("ENOENT"); } }), null);
-  assert.equal(m.pinnedPath("/U"), "/U/.freedom/bin/claude-current");
+  assert.equal(m.pinnedPath("/U"), "/U/.supersuit/bin/claude-current");
 });
 
 // Ported from Freedom v6.29.1 (freedom-dev#586): "not on this PATH" is not "not installed".
@@ -145,6 +145,6 @@ test("the package-manager paths are named once, and the candidate list ends on t
   const { SYSTEM_CLAUDE_PATHS } = await import("../src/bin-resolver.mjs");
   assert.deepEqual(SYSTEM_CLAUDE_PATHS, ["/opt/homebrew/bin/claude", "/usr/local/bin/claude"]);
   assert.deepEqual(CANDIDATES("/U", { exists: () => false, list: () => [] }).slice(-2), SYSTEM_CLAUDE_PATHS);
-  assert.deepEqual(CANDIDATES("/U"), ["/U/.freedom/bin/claude-current", "/U/.local/bin/claude", ...SYSTEM_CLAUDE_PATHS],
+  assert.deepEqual(CANDIDATES("/U"), ["/U/.supersuit/bin/claude-current", "/U/.local/bin/claude", ...SYSTEM_CLAUDE_PATHS],
     "the list itself is what it was before the two paths were named");
 });

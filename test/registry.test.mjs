@@ -2,7 +2,7 @@
 // abf68266), lines 23-53. Only the import path changed. No assertion was weakened.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, writeFileSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -69,7 +69,15 @@ test("the config file is configurable too, and the default is the one Freedom re
   const home = mkdtempSync(join(tmpdir(), "hh-home-"));
   writeFileSync(join(home, "mine.json"), JSON.stringify({ harness: "codex" }));
   assert.equal(harnessId({ env: {}, home, configFile: (h) => join(h, "mine.json") }), "codex");
-  assert.equal(harnessId({ env: {}, home }), "claude-code", "no ~/.freedom/config.json in this home");
+  assert.equal(harnessId({ env: {}, home }), "claude-code", "no ~/.supersuit/config.json in this home");
+});
+test("the default config file is ~/.supersuit/config.json, never the retired ~/.freedom", () => {
+  const home = mkdtempSync(join(tmpdir(), "hh-home-"));
+  mkdirSync(join(home, ".freedom")); mkdirSync(join(home, ".supersuit"));
+  writeFileSync(join(home, ".freedom", "config.json"), JSON.stringify({ harness: "codex" }));
+  assert.equal(harnessId({ env: {}, home }), "claude-code", "a ~/.freedom that is not the same folder is not read");
+  writeFileSync(join(home, ".supersuit", "config.json"), JSON.stringify({ harness: "codex" }));
+  assert.equal(harnessId({ env: {}, home }), "codex");
 });
 test("loadAdapter: a builtin id returns its factory, and a file whose default export is a plain object is wrapped", async () => {
   assert.equal((await loadAdapter("codex"))({}).id, "codex");

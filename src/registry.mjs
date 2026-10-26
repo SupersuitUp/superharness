@@ -2,7 +2,7 @@
 //
 // The resolver is Freedom's (freedom-harness.mjs, October 2026), moved here with its two hard-coded
 // names turned into options that default to what they were: the environment variable
-// (FREEDOM_HARNESS) and the machine config file (~/.freedom/config.json). So Freedom gets the
+// (FREEDOM_HARNESS) and the machine config file (~/.supersuit/config.json, ~/.freedom/config.json before 0.4.3). So Freedom gets the
 // answers it got before, and another product can use the same resolver under its own names.
 //
 // A third harness is one file. `loadAdapter(path)` reads it, `register(id, factory)` makes it
@@ -63,7 +63,7 @@ export async function loadAdapter(pathOrId) {
 /** The shipped profiles, built with an empty environment. For tests and for anything enumerating them. */
 export const PROFILES = Object.fromEntries(HARNESSES.map((id) => [id, BUILTIN[id]({})]));
 
-const freedomConfigFile = (home) => join(home, ".freedom", "config.json");
+const freedomConfigFile = (home) => join(home, ".supersuit", "config.json");
 
 /** The machine's own note about itself. */
 function machineConfig(home, configFile = freedomConfigFile) {
