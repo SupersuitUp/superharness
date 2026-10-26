@@ -141,8 +141,8 @@ test("list --json and which --json are machine readable, and which defaults to c
 });
 test("which reads the machine config under the home it is given", () => {
   const home = mkdtempSync(join(tmpdir(), "hh-cfg-"));
-  spawnSync("mkdir", ["-p", join(home, ".freedom")]);
-  writeFileSync(join(home, ".freedom", "config.json"), JSON.stringify({ harness: "codex" }));
+  spawnSync("mkdir", ["-p", join(home, ".supersuit")]);
+  writeFileSync(join(home, ".supersuit", "config.json"), JSON.stringify({ harness: "codex" }));
   assert.equal(run(["which", "--home", home]).stdout.trim(), "codex");
   assert.equal(run(["which"], { HOME: home }).stdout.trim(), "codex");
 });

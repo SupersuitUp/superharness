@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.3 (2026-10-26)
+
+- **The default state folder is `~/.supersuit`, never the retired `~/.freedom`.** The pinned Claude Code binary (`CANDIDATES`, `pinnedPath`), the launchd PATH (`launchdPathDirs`) and the default machine config file (`harnessId` without `configFile`) all read `~/.supersuit`, matching Supersuit v7, which keeps `~/.freedom` as a link to the same folder. A host with its own folder still passes `configFile`, as before; `FREEDOM_HARNESS` is unchanged. Tests assert the new path and refuse a `~/.freedom` config that is not the same folder.
+
 ## 0.4.2 (2026-10-23)
 
 - **No adapter tells a host to type the retired `freedom:` skill prefix.** The Claude Code profile's `slashCommands` evidence now names `/supersuit:<skill>`, and the Codex one `$supersuit:<skill>`, since both harnesses dropped the `freedom:` alias. A test refuses the old form. Reported in ContinentalWorks/supersuit-dev#929.
